@@ -1,0 +1,12 @@
+{"location":"Layout.js:7","message":"Layout rendered","data":{"activeMenu":"dashboard"},"timestamp":1769021932783,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"Layout.js:7","message":"Layout rendered","data":{"activeMenu":"dashboard"},"timestamp":1769021932783,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"Layout.js:7","message":"Layout rendered","data":{"activeMenu":"dashboard"},"timestamp":1769021970075,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"Layout.js:7","message":"Layout rendered","data":{"activeMenu":"dashboard"},"timestamp":1769021970074,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"Layout.js:7","message":"Layout rendered","data":{"activeMenu":"dashboard"},"timestamp":1769021970087,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"Layout.js:7","message":"Layout rendered","data":{"activeMenu":"dashboard"},"timestamp":1769021970087,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"Layout.js:7","message":"Layout rendered","data":{"activeMenu":"users"},"timestamp":1769021971468,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"Layout.js:7","message":"Layout rendered","data":{"activeMenu":"users"},"timestamp":1769021971468,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"UserManagement.js:95","message":"Component mounted","data":{"activeTab":"Personal","selectedFilter":"Verified Unverified"},"timestamp":1769021971475,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"UserManagement.js:95","message":"Component mounted","data":{"activeTab":"Personal","selectedFilter":"Verified Unverified"},"timestamp":1769021971475,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"UserManagement.js:25","message":"Spacing measurement","data":{"containerGap":"normal","overviewMarginBottom":"0px","userOverviewMarginTop":"0px","actualGap":0,"overviewBottom":715.5,"userOverviewTop":715.5},"timestamp":1769021971575,"sessionId":"debug-session","runId":"run1","hypothesisId":"C"}
+{"location":"UserManagement.js:25","message":"Spacing measurement","data":{"containerGap":"normal","overviewMarginBottom":"0px","userOverviewMarginTop":"0px","actualGap":0,"overviewBottom":715.5,"userOverviewTop":715.5},"timestamp":1769021971575,"sessionId":"debug-session","runId":"run1","hypothesisId":"C"}
