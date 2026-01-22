@@ -131,7 +131,7 @@ const UserManagement = ({ onMenuClick, onUserClick }) => {
   // #region agent log
   useEffect(() => {
     fetch('http://127.0.0.1:7245/ingest/2c3b4d0b-1e9d-43b2-93e5-66abcac194ee',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'UserManagement.js:95',message:'Component mounted',data:{activeTab,selectedFilter},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-  }, []);
+  }, [activeTab, selectedFilter]);
   // #endregion
 
   return (

@@ -129,16 +129,15 @@ const Login = ({ onLoginSuccess }) => {
                 <input type="checkbox" className="checkbox-input" />
                 <span className="checkbox-text">Remember me</span>
               </label>
-              <a 
-                href="#" 
+              <button 
+                type="button"
                 className="forgot-password"
-                onClick={(e) => {
-                  e.preventDefault();
+                onClick={() => {
                   setShowForgotPassword(true);
                 }}
               >
                 Forgot password?
-              </a>
+              </button>
             </div>
 
             <button type="submit" className="login-button" disabled={isLoading}>
@@ -170,7 +169,7 @@ const Login = ({ onLoginSuccess }) => {
               </svg>
               <span>256-bit SSL Encryption</span>
             </div>
-            <p className="login-help">Need help? Contact <a href="#">support@trustichain.com</a></p>
+            <p className="login-help">Need help? Contact <a href="mailto:support@trustichain.com">support@trustichain.com</a></p>
           </div>
         </div>
       </div>

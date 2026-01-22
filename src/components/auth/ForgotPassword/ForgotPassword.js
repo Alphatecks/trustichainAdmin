@@ -75,9 +75,9 @@ const ForgotPassword = ({ onBackToLogin, onEmailSent }) => {
             <div className="forgot-password-footer">
               <p className="forgot-password-help">
                 Didn't receive the email? Check your spam folder or{' '}
-                <a href="#" onClick={(e) => { e.preventDefault(); setIsEmailSent(false); }}>
+                <button type="button" className="link-button" onClick={() => setIsEmailSent(false)}>
                   try again
-                </a>
+                </button>
               </p>
             </div>
           </div>
