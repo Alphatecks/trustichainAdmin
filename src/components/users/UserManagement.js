@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Layout from '../shared/Layout';
 import './UserManagement.css';
 
-const UserManagement = ({ onMenuClick }) => {
+const UserManagement = ({ onMenuClick, onUserClick }) => {
   const [activeTab, setActiveTab] = useState('Personal');
   const [selectedFilter, setSelectedFilter] = useState('Verified Unverified');
   const containerRef = useRef(null);
@@ -38,12 +38,48 @@ const UserManagement = ({ onMenuClick }) => {
   const users = [
     {
       name: 'John Doe',
+      email: 'johndoe@gmail.com',
+      accountType: 'Personal',
       kycStatus: 'Verified',
+      nationality: 'Nigerian',
+      dateOfBirth: '13 07 2003',
+      linkedIdType: 'National ID card',
+      cardNumber: '32415473628',
+      walletAddress: 'HTWR524TRy3',
       totalVolume: '$14,800',
       escrowCreated: '45',
       savingsAccount: '4',
       accountCreated: '21 July 2025',
-      lastActivity: '3hrs ago'
+      lastActivity: '3hrs ago',
+      wallets: [
+        { name: 'John Doe', type: 'Savings Wallet', amount: '$14,800', date: '13 Jul 20205' },
+        { name: 'John Doe', type: 'XPR Wallet', amount: '$14,800', date: '13 Jul 20205' },
+        { name: 'John Doe', type: 'Savings Wallet', amount: '$14,800', date: '13 Jul 20205' },
+        { name: 'John Doe', type: 'Savings Wallet', amount: '$14,800', date: '13 Jul 20205' },
+        { name: 'John Doe', type: 'Savings Wallet', amount: '$14,800', date: '13 Jul 20205' },
+        { name: 'John Doe', type: 'Savings Wallet', amount: '$14,800', date: '13 Jul 20205' }
+      ],
+      escrows: [
+        { id: '$324', parties: 'Parties involved', status: 'In progress' },
+        { id: '$324', parties: 'Parties involved', status: 'Completed' },
+        { id: '$324', parties: 'Parties involved', status: 'Disputed' },
+        { id: '$324', parties: 'Parties involved', status: 'Resolved' },
+        { id: '$324', parties: 'Parties involved', status: 'Resolved' }
+      ],
+      transactions: [
+        { type: 'Funds Transferred', amount: '$324', time: '3m ago', description: 'You transferred $324 to Jane foster' },
+        { type: 'Payment Received', amount: '$450', time: '10m ago', description: 'You received $450 from Mark Thompson' },
+        { type: 'Invoice Sent', amount: '$150', time: '15m ago', description: 'You sent an invoice of $150 to Sarah Lee' },
+        { type: 'Refund Processed', amount: '$75', time: '20m ago', description: 'You refunded $75 to Alex Smith' },
+        { type: 'Transaction Declined', amount: '$600', time: '25m ago', description: 'Your payment of $600 to Laura Chen was declined' }
+      ],
+      disputes: [
+        { name: 'Parties involved', parties: 'Parties involved', status: 'In progress', date: '3rd Dec 2025' },
+        { name: 'Contract Breach', parties: 'Company A, Company B', status: 'Resolved', date: '15th Nov 2023' },
+        { name: 'Payment Dispute', parties: 'Client X, Provider Y', status: 'Pending', date: '22nd Jan 2024' },
+        { name: 'Intellectual Property', parties: 'Inventor Z, Corporation Q', status: 'In progress', date: '30th Apr 2025' },
+        { name: 'Service Agreement', parties: 'User M, Service N', status: 'Closed', date: '10th Jul 2023' }
+      ]
     },
     {
       name: 'Jane Smith',
@@ -256,7 +292,7 @@ const UserManagement = ({ onMenuClick }) => {
             </thead>
             <tbody>
               {users.map((user, index) => (
-                <tr key={index}>
+                <tr key={index} onClick={() => onUserClick && onUserClick(user)}>
                   <td>
                     <div className="user-cell">
                       <div className="user-avatar"></div>

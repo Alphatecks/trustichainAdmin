@@ -26,7 +26,11 @@ const Layout = ({ children, activeMenu, onMenuClick }) => {
               onClick={() => onMenuClick && onMenuClick('users')}
             >
               <span className="icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="4" stroke="#2563eb" strokeWidth="2"/><path d="M2 17C2 13.6863 5.13401 11 9 11H11C14.866 11 18 13.6863 18 17" stroke="#2563eb" strokeWidth="2"/></svg></span> Users Management</li>
-            <li><span className="icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="7" width="14" height="10" rx="2" stroke="#2563eb" strokeWidth="2"/><path d="M7 7V5C7 3.89543 7.89543 3 9 3H11C12.1046 3 13 3.89543 13 5V7" stroke="#2563eb" strokeWidth="2"/></svg></span> Escrow Management</li>
+            <li 
+              className={activeMenu === 'escrow' ? 'active' : ''}
+              onClick={() => onMenuClick && onMenuClick('escrow')}
+            >
+              <span className="icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="7" width="14" height="10" rx="2" stroke="#2563eb" strokeWidth="2"/><path d="M7 7V5C7 3.89543 7.89543 3 9 3H11C12.1046 3 13 3.89543 13 5V7" stroke="#2563eb" strokeWidth="2"/></svg></span> Escrow Management</li>
             <li><span className="icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="10" rx="2" stroke="#2563eb" strokeWidth="2"/><path d="M7 9H13" stroke="#2563eb" strokeWidth="2"/><path d="M7 11H13" stroke="#2563eb" strokeWidth="2"/></svg></span> Transactions</li>
             <li><span className="icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#2563eb" strokeWidth="2"/><path d="M10 6V10L13 13" stroke="#2563eb" strokeWidth="2"/></svg></span> Dispute Resolution</li>
             <li><span className="icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="7" width="14" height="10" rx="2" stroke="#2563eb" strokeWidth="2"/><rect x="7" y="3" width="6" height="4" rx="2" stroke="#2563eb" strokeWidth="2"/></svg></span> Business Management</li>
