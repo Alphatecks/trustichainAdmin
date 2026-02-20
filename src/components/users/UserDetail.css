@@ -34,49 +34,82 @@
 .user-detail-container .profile {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
-.user-detail-container .notification {
-  font-size: 1.3rem;
-  color: #2563eb;
+.user-detail-container .notification-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: #e8e8e8;
+  color: #666;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-detail-container .notification-btn:hover {
+  background: #e0e0e0;
+}
+
+.user-detail-container .notification-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 10px;
+  height: 10px;
+  background: #0671FF;
+  border-radius: 50%;
+  border: 2px solid #e8e8e8;
 }
 
 .user-detail-container .avatar {
-  width: 36px;
-  height: 36px;
-  background: #2563eb;
+  width: 40px;
+  height: 40px;
+  background: #0671FF;
   color: #fff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
+  flex-shrink: 0;
 }
 
 .user-detail-container .profile-info {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  gap: 2px;
+}
+
+.user-detail-container .profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .user-detail-container .profile-info .name {
-  font-weight: 600;
-  color: #222;
-  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111;
+  font-size: 1.05rem;
+}
+
+.user-detail-container .verified-badge {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: block;
 }
 
 .user-detail-container .profile-info .role {
   font-size: 0.85rem;
   color: #888;
-}
-
-.user-detail-container .checkmark {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* Main Grid Layout - Flexible Layout */
@@ -128,7 +161,7 @@
 .card-title-section .section-dot {
   width: 5px;
   height: 18px;
-  background: #2563eb;
+  background: #0671FF;
   border-radius: 4px;
   display: inline-block;
 }
@@ -165,7 +198,7 @@
 .user-details-title-section .section-dot {
   width: 5px;
   height: 18px;
-  background: #2563eb;
+  background: #0671FF;
   border-radius: 4px;
   display: inline-block;
 }
@@ -273,7 +306,7 @@
 
 .kyc-badge.verified {
   background: #dbeafe;
-  color: #2563eb;
+  color: #0671FF;
 }
 
 .kyc-badge.pending {
@@ -303,13 +336,13 @@
 }
 
 .user-tab.active {
-  background: #2563eb;
+  background: #0671FF;
   color: #ffffff;
 }
 
 .user-tab:not(.active) {
   background: #ffffff;
-  color: #2563eb;
+  color: #0671FF;
   border: 1px solid #e6e6e6;
 }
 
@@ -338,7 +371,7 @@
 .wallet-title-section .section-dot {
   width: 5px;
   height: 18px;
-  background: #2563eb;
+  background: #0671FF;
   border-radius: 4px;
   display: inline-block;
 }
@@ -443,7 +476,7 @@
 .kyc-title-section .section-dot {
   width: 5px;
   height: 18px;
-  background: #2563eb;
+  background: #0671FF;
   border-radius: 4px;
   display: inline-block;
 }
@@ -465,7 +498,7 @@
 }
 
 .verified-badge.verified {
-  background: #2563eb;
+  background: #0671FF;
   color: #ffffff;
 }
 
@@ -605,7 +638,7 @@
 .status-completed,
 .status-resolved {
   background: #dbeafe;
-  color: #2563eb;
+  color: #0671FF;
 }
 
 .status-in-progress,
@@ -662,7 +695,7 @@
 
 .transaction-received {
   background: #dbeafe;
-  color: #2563eb;
+  color: #0671FF;
 }
 
 .transaction-sent {
@@ -725,7 +758,7 @@
 .payroll-title-section .section-dot {
   width: 5px;
   height: 18px;
-  background: #2563eb;
+  background: #0671FF;
   border-radius: 4px;
   display: inline-block;
 }
@@ -927,9 +960,9 @@
 }
 
 .user-detail-card .pagination-number.active {
-  background: #2563eb;
+  background: #0671FF;
   color: #ffffff;
-  border-color: #2563eb;
+  border-color: #0671FF;
 }
 
 .user-detail-card .pagination-ellipsis {

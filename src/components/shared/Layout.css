@@ -32,7 +32,7 @@
 .logo-text {
   font-size: 1.3rem;
   font-weight: 700;
-  color: #2563eb;
+  color: #0671FF;
 }
 
 .sidebar nav {
@@ -58,8 +58,8 @@
 
 .sidebar nav ul li.active, .sidebar nav ul li:hover {
   background: #f0f4ff;
-  border-left: 4px solid #2563eb;
-  color: #2563eb;
+  border-left: 4px solid #0671FF;
+  color: #0671FF;
 }
 
 .sidebar .icon {
@@ -104,14 +104,14 @@
 
 .notification {
   font-size: 1.3rem;
-  color: #2563eb;
+  color: #0671FF;
   cursor: pointer;
 }
 
 .avatar {
   width: 36px;
   height: 36px;
-  background: #2563eb;
+  background: #0671FF;
   color: #fff;
   border-radius: 50%;
   display: flex;

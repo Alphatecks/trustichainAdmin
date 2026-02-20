@@ -34,49 +34,82 @@
 .escrow-management-container .profile {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
-.escrow-management-container .notification {
-  font-size: 1.3rem;
-  color: #2563eb;
+.escrow-management-container .notification-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: #e8e8e8;
+  color: #666;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.escrow-management-container .notification-btn:hover {
+  background: #e0e0e0;
+}
+
+.escrow-management-container .notification-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 10px;
+  height: 10px;
+  background: #0671FF;
+  border-radius: 50%;
+  border: 2px solid #e8e8e8;
 }
 
 .escrow-management-container .avatar {
-  width: 36px;
-  height: 36px;
-  background: #2563eb;
+  width: 40px;
+  height: 40px;
+  background: #0671FF;
   color: #fff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
+  flex-shrink: 0;
 }
 
 .escrow-management-container .profile-info {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  gap: 2px;
+}
+
+.escrow-management-container .profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .escrow-management-container .profile-info .name {
-  font-weight: 600;
-  color: #222;
-  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111;
+  font-size: 1.05rem;
+}
+
+.escrow-management-container .verified-badge {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: block;
 }
 
 .escrow-management-container .profile-info .role {
   font-size: 0.85rem;
   color: #888;
-}
-
-.escrow-management-container .checkmark {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* Main Content Layout */
@@ -91,26 +124,37 @@
   flex: 0 0 400px;
 }
 
-.overview-cards-grid {
+/* Scoped to escrow page only - avoids overriding User Management overview */
+.escrow-management-container .overview-cards-grid {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.overview-card {
+.escrow-management-container .overview-cards-grid .overview-card {
   background: #ffffff;
   border-radius: 10px;
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  padding: 14px 12px;
+  padding: 22px 16px;
+  min-height: 100px;
   gap: 10px;
   border: 1px solid #f0f0f0;
 }
 
-.overview-card-icon-bg {
+.escrow-management-container .overview-cards-grid .overview-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.escrow-management-container .overview-cards-grid .overview-card-icon-bg {
   width: 32px;
   height: 32px;
-  background: #2563eb;
+  background: #0671FF;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -118,40 +162,32 @@
   flex-shrink: 0;
 }
 
-.overview-card-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.overview-card-row {
+.escrow-management-container .overview-cards-grid .overview-card-row {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-bottom: 2px;
 }
 
-.overview-card-trend-icon {
+.escrow-management-container .overview-cards-grid .overview-card-trend-icon {
   display: flex;
   align-items: center;
 }
 
-.overview-card-trend-label {
+.escrow-management-container .overview-cards-grid .overview-card-trend-label {
   font-size: 0.75rem;
   color: #888;
   font-weight: 500;
 }
 
-.overview-card-label {
+.escrow-management-container .overview-cards-grid .overview-card-label {
   font-size: 0.9rem;
   color: #222;
   font-weight: 600;
 }
 
-.overview-card-value {
-  font-size: 1.4rem;
-  font-weight: 700;
+.escrow-management-container .overview-cards-grid .overview-card-value {
+  font-size: 2.75rem;
+  font-weight: 500;
   color: #111;
 }
 
@@ -184,7 +220,7 @@
 .section-dot {
   width: 5px;
   height: 18px;
-  background: #2563eb;
+  background: #0671FF;
   border-radius: 4px;
   display: inline-block;
 }
@@ -291,7 +327,7 @@
 .escrow-dot {
   width: 6px;
   height: 6px;
-  background: #2563eb;
+  background: #0671FF;
   border-radius: 50%;
   display: inline-block;
   flex-shrink: 0;
@@ -315,7 +351,7 @@
 }
 
 .status-in-progress {
-  color: #2563eb;
+  color: #0671FF;
 }
 
 .status-cancelled {
@@ -368,9 +404,9 @@
 }
 
 .pagination-number.active {
-  background: #2563eb;
+  background: #0671FF;
   color: #ffffff;
-  border-color: #2563eb;
+  border-color: #0671FF;
 }
 
 .pagination-ellipsis {

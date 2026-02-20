@@ -105,22 +105,21 @@ const UserDetail = ({ user, onBack, onMenuClick }) => {
           </div>
           <input className="search-bar" type="text" placeholder="Search" />
           <div className="profile">
-            <span className="notification">
+            <button type="button" className="notification-btn" aria-label="Notifications">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M10 2C7.23858 2 5 4.23858 5 7V11C5 12.1046 4.10457 13 3 13H17C15.8954 13 15 12.1046 15 11V7C15 4.23858 12.7614 2 10 2Z" stroke="#2563eb" strokeWidth="2"/>
-                <path d="M7 15C7 16.1046 8.34315 17 10 17C11.6569 17 13 16.1046 13 15" stroke="#2563eb" strokeWidth="2"/>
+                <path d="M10 2C7.23858 2 5 4.23858 5 7V11C5 12.1046 4.10457 13 3 13H17C15.8954 13 15 12.1046 15 11V7C15 4.23858 12.7614 2 10 2Z" stroke="currentColor" strokeWidth="2"/>
+                <path d="M7 15C7 16.1046 8.34315 17 10 17C11.6569 17 13 16.1046 13 15" stroke="currentColor" strokeWidth="2"/>
               </svg>
-            </span>
+              <span className="notification-dot" />
+            </button>
             <span className="avatar">SC</span>
-            <span className="profile-info">
-              <span className="name">Sarah Chen</span>
+            <div className="profile-info">
+              <span className="profile-name-row">
+                <span className="name">Sarah Chen</span>
+                <img src={require('../../assets/images/Frame.png')} alt="" className="verified-badge" />
+              </span>
               <span className="role">Freelancer</span>
-            </span>
-            <span className="checkmark">
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                <path d="M16.7071 5.29289C17.0976 5.68342 17.0976 6.31658 16.7071 6.70711L8.70711 14.7071C8.31658 15.0976 7.68342 15.0976 7.29289 14.7071L3.29289 10.7071C2.90237 10.3166 2.90237 9.68342 3.29289 9.29289C3.68342 8.90237 4.31658 8.90237 4.70711 9.29289L8 12.5858L15.2929 5.29289C15.6834 4.90237 16.3166 4.90237 16.7071 5.29289Z" fill="#2563eb"/>
-              </svg>
-            </span>
+            </div>
           </div>
         </header>
 

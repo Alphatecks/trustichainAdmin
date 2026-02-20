@@ -41,22 +41,21 @@ const EscrowManagement = ({ onMenuClick }) => {
           <div className="breadcrumb">Admin End &gt; Escrow Management</div>
           <input className="search-bar" type="text" placeholder="Search" />
           <div className="profile">
-            <span className="notification">
+            <button type="button" className="notification-btn" aria-label="Notifications">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M10 2C7.23858 2 5 4.23858 5 7V11C5 12.1046 4.10457 13 3 13H17C15.8954 13 15 12.1046 15 11V7C15 4.23858 12.7614 2 10 2Z" stroke="#2563eb" strokeWidth="2"/>
-                <path d="M7 15C7 16.1046 8.34315 17 10 17C11.6569 17 13 16.1046 13 15" stroke="#2563eb" strokeWidth="2"/>
+                <path d="M10 2C7.23858 2 5 4.23858 5 7V11C5 12.1046 4.10457 13 3 13H17C15.8954 13 15 12.1046 15 11V7C15 4.23858 12.7614 2 10 2Z" stroke="currentColor" strokeWidth="2"/>
+                <path d="M7 15C7 16.1046 8.34315 17 10 17C11.6569 17 13 16.1046 13 15" stroke="currentColor" strokeWidth="2"/>
               </svg>
-            </span>
+              <span className="notification-dot" />
+            </button>
             <span className="avatar">SC</span>
-            <span className="profile-info">
-              <span className="name">Sarah Chen</span>
+            <div className="profile-info">
+              <span className="profile-name-row">
+                <span className="name">Sarah Chen</span>
+                <img src={require('../../assets/images/Frame.png')} alt="" className="verified-badge" />
+              </span>
               <span className="role">Freelancer</span>
-            </span>
-            <span className="checkmark">
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                <path d="M16.7071 5.29289C17.0976 5.68342 17.0976 6.31658 16.7071 6.70711L8.70711 14.7071C8.31658 15.0976 7.68342 15.0976 7.29289 14.7071L3.29289 10.7071C2.90237 10.3166 2.90237 9.68342 3.29289 9.29289C3.68342 8.90237 4.31658 8.90237 4.70711 9.29289L8 12.5858L15.2929 5.29289C15.6834 4.90237 16.3166 4.90237 16.7071 5.29289Z" fill="#2563eb"/>
-              </svg>
-            </span>
+            </div>
           </div>
         </header>
 
@@ -66,68 +65,68 @@ const EscrowManagement = ({ onMenuClick }) => {
           <div className="overview-panel">
             <div className="overview-cards-grid">
               <div className="overview-card">
-                <div className="overview-card-icon-bg">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#fff"/>
-                  </svg>
-                </div>
-                <div className="overview-card-info">
+                <div className="overview-card-head">
+                  <div className="overview-card-icon-bg">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#fff"/>
+                    </svg>
+                  </div>
                   <div className="overview-card-row">
                     <span className="overview-card-trend-icon">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                        <path d="M4 12l6 6L20 6" stroke="#2563eb" strokeWidth="2" fill="none"/>
+                        <path d="M4 12l6 6L20 6" stroke="#0671FF" strokeWidth="2" fill="none"/>
                       </svg>
                     </span>
                     <span className="overview-card-trend-label">10% in the past month</span>
                   </div>
-                  <div className="overview-card-label">Total Amount</div>
-                  <div className="overview-card-value">5,454</div>
                 </div>
+                <div className="overview-card-label">Total Amount</div>
+                <div className="overview-card-value">5,454</div>
               </div>
 
               <div className="overview-card">
-                <div className="overview-card-icon-bg">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M14 2H6C4.9 2 4 2.9 4 4v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z" fill="#fff"/>
-                  </svg>
-                </div>
-                <div className="overview-card-info">
+                <div className="overview-card-head">
+                  <div className="overview-card-icon-bg">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M14 2H6C4.9 2 4 2.9 4 4v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z" fill="#fff"/>
+                    </svg>
+                  </div>
                   <div className="overview-card-row">
                     <span className="overview-card-trend-icon">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                        <path d="M4 12l6 6L20 6" stroke="#2563eb" strokeWidth="2" fill="none"/>
+                        <path d="M4 12l6 6L20 6" stroke="#0671FF" strokeWidth="2" fill="none"/>
                       </svg>
                     </span>
                     <span className="overview-card-trend-label">10% in the past month</span>
                   </div>
-                  <div className="overview-card-label">Total Escrow transaction</div>
-                  <div className="overview-card-value">5,454</div>
                 </div>
+                <div className="overview-card-label">Total Escrow transaction</div>
+                <div className="overview-card-value">5,454</div>
               </div>
 
               <div className="overview-card">
-                <div className="overview-card-icon-bg">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#fff"/>
-                  </svg>
+                <div className="overview-card-head">
+                  <div className="overview-card-icon-bg">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#fff"/>
+                    </svg>
+                  </div>
                 </div>
-                <div className="overview-card-info">
-                  <div className="overview-card-label">Completed Escrow</div>
-                  <div className="overview-card-value">5,454</div>
-                </div>
+                <div className="overview-card-label">Completed Escrow</div>
+                <div className="overview-card-value">5,454</div>
               </div>
 
               <div className="overview-card">
-                <div className="overview-card-icon-bg">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" fill="#fff"/>
-                    <path d="M12 8v4M12 16h.01" stroke="#2563eb" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
+                <div className="overview-card-head">
+                  <div className="overview-card-icon-bg">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" fill="#fff"/>
+                      <path d="M12 8v4M12 16h.01" stroke="#0671FF" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  </div>
                 </div>
-                <div className="overview-card-info">
-                  <div className="overview-card-label">Disputed Escrow</div>
-                  <div className="overview-card-value">5,454</div>
-                </div>
+                <div className="overview-card-label">Disputed Escrow</div>
+                <div className="overview-card-value">5,454</div>
               </div>
             </div>
           </div>
@@ -190,7 +189,7 @@ const EscrowManagement = ({ onMenuClick }) => {
                             {escrow.status}
                           </span>
                           <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                            <path d="M7.5 15L12.5 10L7.5 5" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M7.5 15L12.5 10L7.5 5" stroke="#0671FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
                         </div>
                       </td>

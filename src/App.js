@@ -4,6 +4,9 @@ import Dashboard from './components/dashboard';
 import UserManagement from './components/users';
 import UserDetail from './components/users/UserDetail';
 import EscrowManagement from './components/escrow';
+import Transactions from './components/transactions';
+import DisputeResolution from './components/dispute';
+import Settings from './components/settings';
 import { authService } from './services/authService';
 import './App.css';
 
@@ -39,6 +42,15 @@ function App() {
     } else if (menu === 'escrow') {
       setCurrentPage('escrow');
       setSelectedUser(null);
+    } else if (menu === 'transactions') {
+      setCurrentPage('transactions');
+      setSelectedUser(null);
+    } else if (menu === 'dispute') {
+      setCurrentPage('dispute');
+      setSelectedUser(null);
+    } else if (menu === 'settings') {
+      setCurrentPage('settings');
+      setSelectedUser(null);
     }
   };
 
@@ -66,6 +78,18 @@ function App() {
 
   if (currentPage === 'escrow') {
     return <EscrowManagement onLogout={handleLogout} onMenuClick={handleMenuClick} />;
+  }
+
+  if (currentPage === 'transactions') {
+    return <Transactions onMenuClick={handleMenuClick} />;
+  }
+
+  if (currentPage === 'dispute') {
+    return <DisputeResolution onMenuClick={handleMenuClick} />;
+  }
+
+  if (currentPage === 'settings') {
+    return <Settings onMenuClick={handleMenuClick} />;
   }
 
   return <Dashboard onLogout={handleLogout} onMenuClick={handleMenuClick} />;

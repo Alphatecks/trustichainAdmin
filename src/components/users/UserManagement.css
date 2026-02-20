@@ -1,144 +1,193 @@
-/* #region agent log - CSS loaded check */
-/* This file is loaded - checking spacing rules */
-/* #endregion */
+/* User Management – full redesign, scoped with um- */
 
-.user-management-container {
+.um-page {
   flex: 1;
   padding: 32px 40px;
   display: flex;
   flex-direction: column;
-  /* REMOVED gap: 24px - this was causing the spacing issue */
+  gap: 24px;
   background: #f7f9fb;
-  font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Header Styles */
-.main-header {
+/* ----- Header ----- */
+.um-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px; /* Explicit margin instead of gap */
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
-.breadcrumb {
+.um-breadcrumb {
   color: #888;
   font-size: 1rem;
 }
 
-.search-bar {
-  width: 260px;
-  padding: 8px 16px;
-  border: 1px solid #e6e6e6;
-  border-radius: 8px;
-  font-size: 1rem;
-  background: #f7f9fb;
-  font-family: 'Satoshi', sans-serif;
-}
-
-.profile {
+.um-global-search {
   display: flex;
   align-items: center;
-  gap: 12px;
+  width: 260px;
+  padding: 8px 12px 8px 16px;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
 }
 
-.notification {
-  font-size: 1.3rem;
-  color: #2563eb;
+.um-global-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  font-family: inherit;
+  background: transparent;
+}
+
+.um-global-search input::placeholder {
+  color: #999;
+}
+
+.um-global-search .um-search-icon {
+  flex-shrink: 0;
+  margin-right: 8px;
+  color: #888;
+}
+
+.um-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.um-notification-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: #e8e8e8;
+  color: #666;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.avatar {
-  width: 36px;
-  height: 36px;
-  background: #2563eb;
+.um-notification-btn:hover {
+  background: #e0e0e0;
+}
+
+.um-notification-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 10px;
+  height: 10px;
+  background: #0671FF;
+  border-radius: 50%;
+  border: 2px solid #e8e8e8;
+}
+
+.um-avatar {
+  width: 40px;
+  height: 40px;
+  background: #0671FF;
   color: #fff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
+  flex-shrink: 0;
 }
 
-.profile-info {
+.um-profile-info {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  gap: 2px;
 }
 
-.profile-info .name {
-  font-weight: 600;
-  color: #222;
-  font-size: 0.95rem;
+.um-profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.profile-info .role {
+.um-profile-name {
+  font-weight: 700;
+  color: #111;
+  font-size: 1.05rem;
+}
+
+.um-verified-badge {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: block;
+}
+
+.um-profile-role {
   font-size: 0.85rem;
   color: #888;
 }
 
-/* Overview Section */
-.overview-section {
-  background: transparent !important;
-  border-radius: 0 !important;
-  padding: 0 !important;
-  box-shadow: none !important;
-  margin: 0 !important;
-  margin-bottom: 0 !important; /* No bottom margin - should sit directly above user-overview-section */
+/* ----- Overview ----- */
+.um-overview {
+  background: transparent;
 }
 
-.overview-section .section-header {
+.um-overview-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px !important;
-  margin-top: 0;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 20px;
-  margin-top: 0;
-}
-
-.section-dot {
-  width: 5px;
-  height: 18px;
-  background: #2563eb;
-  border-radius: 4px;
-  display: inline-block;
-}
-
-.section-title {
+  margin-bottom: 12px;
   font-size: 1.05rem;
   font-weight: 600;
   color: #222;
 }
 
-.overview-cards-grid {
+.um-overview-bar {
+  width: 5px;
+  height: 18px;
+  background: #0671FF;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.um-overview-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
-  margin-bottom: 0; /* No bottom margin */
 }
 
-.overview-card {
-  background: #ffffff;
+.um-card {
+  background: #fff;
   border-radius: 10px;
+  padding: 22px 16px;
+  min-height: 100px;
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  padding: 14px 12px;
   gap: 10px;
   border: 1px solid #f0f0f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.overview-card-icon-bg {
+.um-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.um-card-icon {
   width: 32px;
   height: 32px;
-  background: #2563eb;
+  background: #0671FF;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -146,53 +195,40 @@
   flex-shrink: 0;
 }
 
-.overview-card-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.overview-card-row {
+.um-card-trend {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-bottom: 2px;
-}
-
-.overview-card-trend-icon {
-  display: flex;
-  align-items: center;
-}
-
-.overview-card-trend-label {
   font-size: 0.75rem;
   color: #888;
   font-weight: 500;
 }
 
-.overview-card-label {
+.um-card-trend svg {
+  flex-shrink: 0;
+}
+
+.um-card-label {
   font-size: 0.9rem;
   color: #222;
   font-weight: 600;
 }
 
-.overview-card-value {
-  font-size: 1.4rem;
-  font-weight: 700;
+.um-card-value {
+  font-size: 2.75rem;
+  font-weight: 500;
   color: #111;
 }
 
-/* User Overview Section */
-.user-overview-section {
-  background: #ffffff;
+/* ----- User Overview block ----- */
+.um-user-overview {
+  background: #fff;
   border-radius: 14px;
   padding: 20px 18px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
-  margin-top: 0 !important; /* No top margin - should sit directly below overview-section */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
 }
 
-.user-overview-controls {
+.um-user-overview-header {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -200,40 +236,59 @@
   flex-wrap: wrap;
 }
 
-.search-control {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border: 1px solid #e6e6e6;
-  border-radius: 8px;
-  background: #f7f9fb;
-  flex: 1;
-  min-width: 200px;
-}
-
-.search-control svg {
+.um-user-overview-header .um-overview-title {
+  margin-bottom: 0;
   flex-shrink: 0;
 }
 
-.user-search-input {
-  border: none;
-  background: transparent;
-  outline: none;
+.um-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   flex: 1;
-  font-size: 0.95rem;
-  font-family: 'Satoshi', sans-serif;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
-.tab-buttons {
+.um-table-search {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  flex: 1;
+  min-width: 200px;
+  padding: 8px 12px;
   background: #f7f9fb;
-  padding: 4px;
+  border: 1px solid #e6e6e6;
   border-radius: 8px;
 }
 
-.tab-button {
+.um-table-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.um-table-search input::placeholder {
+  color: #999;
+}
+
+.um-table-search .um-search-icon {
+  flex-shrink: 0;
+  margin-right: 8px;
+  color: #666;
+}
+
+.um-tabs {
+  display: flex;
+  background: #f0f4ff;
+  padding: 4px;
+  border-radius: 8px;
+  gap: 2px;
+}
+
+.um-tabs button {
   padding: 8px 16px;
   border: none;
   background: transparent;
@@ -242,59 +297,60 @@
   font-weight: 500;
   color: #666;
   cursor: pointer;
-  transition: all 0.2s;
-  font-family: 'Satoshi', sans-serif;
+  font-family: inherit;
+  transition: background 0.2s, color 0.2s;
 }
 
-.tab-button.active {
-  background: #ffffff;
-  color: #2563eb;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+.um-tabs button.active {
+  background: #0671FF;
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.filter-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.filter-dropdown {
+.um-filter-select {
   padding: 8px 12px;
   border: 1px solid #e6e6e6;
   border-radius: 8px;
-  background: #ffffff;
+  background: #fff;
   font-size: 0.95rem;
-  font-family: 'Satoshi', sans-serif;
+  font-family: inherit;
   cursor: pointer;
   outline: none;
+  color: #222;
 }
 
-.filter-icon-btn {
+.um-filter-btn {
   padding: 8px;
   border: 1px solid #e6e6e6;
   border-radius: 8px;
-  background: #ffffff;
+  background: #fff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #666;
 }
 
-.user-table-container {
+.um-filter-btn:hover {
+  background: #f7f9fb;
+}
+
+/* ----- Table ----- */
+.um-table-wrap {
   overflow-x: auto;
   margin-bottom: 20px;
 }
 
-.user-table {
+.um-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.user-table thead {
+.um-table thead {
   background: #f7f9fb;
 }
 
-.user-table th {
+.um-table th {
   padding: 12px 16px;
   text-align: left;
   font-size: 0.9rem;
@@ -303,108 +359,140 @@
   border-bottom: 1px solid #e6e6e6;
 }
 
-.user-table td {
-  padding: 16px;
+.um-table td {
+  padding: 14px 16px;
   border-bottom: 1px solid #f0f0f0;
   font-size: 0.95rem;
   color: #222;
 }
 
-.user-table tbody tr {
+.um-table tbody tr {
   cursor: pointer;
+  transition: background 0.15s;
 }
 
-.user-table tbody tr:hover {
+.um-table tbody tr:hover {
   background: #f7f9fb;
 }
 
-.user-cell {
+.um-user-cell {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-.user-avatar {
-  width: 32px;
-  height: 32px;
+.um-user-radio {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ccc;
   border-radius: 50%;
-  background: #2563eb;
   flex-shrink: 0;
+  background: #f7f9fb;
 }
 
-.kyc-status {
+.um-kyc {
+  display: inline-block;
   padding: 4px 12px;
   border-radius: 12px;
   font-size: 0.85rem;
   font-weight: 600;
-  display: inline-block;
 }
 
-.kyc-status.verified {
+.um-kyc--verified {
   background: #dbeafe;
-  color: #2563eb;
+  color: #0671FF;
 }
 
-.kyc-status.pending {
+.um-kyc--pending {
   background: #fef3c7;
   color: #d97706;
 }
 
-.kyc-status.rejected {
+.um-kyc--rejected {
   background: #fee2e2;
   color: #dc2626;
 }
 
-.last-activity-cell {
+.um-activity-cell {
   display: flex;
   align-items: center;
   gap: 8px;
   color: #666;
 }
 
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 20px;
-}
-
-.pagination-btn {
-  padding: 8px;
-  border: 1px solid #e6e6e6;
-  border-radius: 6px;
-  background: #ffffff;
+.um-view-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #0671FF;
+  color: #fff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666;
+  flex-shrink: 0;
+  transition: opacity 0.2s;
 }
 
-.pagination-btn:disabled {
+.um-view-btn:hover {
+  opacity: 0.9;
+}
+
+/* ----- Pagination ----- */
+.um-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.um-page-btn {
+  padding: 8px;
+  border: 1px solid #e6e6e6;
+  border-radius: 6px;
+  background: #fff;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.um-page-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.pagination-number {
+.um-page-btn:not(:disabled):hover {
+  background: #f7f9fb;
+}
+
+.um-page-num {
   padding: 8px 12px;
   border: 1px solid #e6e6e6;
   border-radius: 6px;
-  background: #ffffff;
-  cursor: pointer;
-  font-size: 0.95rem;
+  background: #fff;
   color: #666;
-  font-family: 'Satoshi', sans-serif;
+  font-size: 0.95rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
-.pagination-number.active {
-  background: #2563eb;
-  color: #ffffff;
-  border-color: #2563eb;
+.um-page-num:hover {
+  background: #f7f9fb;
 }
 
-.pagination-ellipsis {
+.um-page-num.active {
+  background: #0671FF;
+  color: #fff;
+  border-color: #0671FF;
+}
+
+.um-page-ellipsis {
   padding: 8px 4px;
   color: #666;
+  font-size: 0.95rem;
 }

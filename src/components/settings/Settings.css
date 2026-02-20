@@ -1,0 +1,368 @@
+/* Settings page – set- scoped */
+
+.set-page {
+  flex: 1;
+  padding: 32px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: #f7f9fb;
+  font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.set-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.set-breadcrumb {
+  color: #888;
+  font-size: 1rem;
+}
+
+.set-search {
+  display: flex;
+  align-items: center;
+  width: 260px;
+  padding: 8px 12px 8px 16px;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+}
+
+.set-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  font-family: inherit;
+  background: transparent;
+}
+
+.set-search input::placeholder {
+  color: #999;
+}
+
+.set-search-icon {
+  flex-shrink: 0;
+  margin-right: 8px;
+  color: #888;
+}
+
+.set-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.set-notification-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: #e8e8e8;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.set-notification-btn:hover {
+  background: #e0e0e0;
+}
+
+.set-notification-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 10px;
+  height: 10px;
+  background: #0671FF;
+  border-radius: 50%;
+  border: 2px solid #e8e8e8;
+}
+
+.set-avatar {
+  width: 40px;
+  height: 40px;
+  background: #0671FF;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.set-profile-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.set-profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.set-profile-name {
+  font-weight: 700;
+  color: #111;
+  font-size: 1.05rem;
+}
+
+.set-verified-badge {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.set-profile-role {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+/* Section title */
+.set-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 20px;
+}
+
+.set-section-bar {
+  width: 5px;
+  height: 18px;
+  background: #0671FF;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* Cards – grid layout */
+.set-content {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+@media (max-width: 900px) {
+  .set-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+.set-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px 22px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  border: 1px solid #f0f0f0;
+}
+
+/* Profile and Security span full width when in grid (optional: make them 2-col span) */
+.set-card.set-card--wide {
+  grid-column: 1 / -1;
+}
+
+/* Form */
+.set-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.set-form-grid--narrow {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.set-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.set-field--avatar {
+  grid-column: 1 / -1;
+}
+
+.set-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.set-input,
+.set-select {
+  padding: 12px 14px;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  background: #fff;
+}
+
+.set-input:focus,
+.set-select:focus {
+  border-color: #0671FF;
+}
+
+.set-select {
+  cursor: pointer;
+  color: #222;
+}
+
+.set-avatar-upload {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.set-avatar-preview {
+  width: 64px;
+  height: 64px;
+  background: #0671FF;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.set-avatar-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Buttons */
+.set-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+}
+
+.set-btn--primary {
+  background: #0671FF;
+  color: #fff;
+}
+
+.set-btn--primary:hover {
+  background: #0560e6;
+}
+
+.set-btn--secondary {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.set-btn--secondary:hover {
+  background: #e6e6e6;
+}
+
+.set-btn--ghost {
+  background: transparent;
+  color: #666;
+}
+
+.set-btn--ghost:hover {
+  color: #333;
+}
+
+/* Toggles */
+.set-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.set-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.set-toggle-row:last-child {
+  border-bottom: none;
+}
+
+.set-toggle-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #222;
+}
+
+.set-toggle-desc {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 4px;
+}
+
+.set-toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.set-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.set-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #ccc;
+  border-radius: 24px;
+  transition: 0.3s;
+}
+
+.set-toggle-slider::before {
+  content: '';
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: 0.3s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.set-toggle input:checked + .set-toggle-slider {
+  background: #0671FF;
+}
+
+.set-toggle input:checked + .set-toggle-slider::before {
+  transform: translateX(20px);
+}

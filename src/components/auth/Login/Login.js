@@ -18,9 +18,14 @@ const Login = ({ onLoginSuccess }) => {
 
     try {
       const data = await authService.login(email, password);
-      
-      // Store authentication data
-      authService.storeAuthData(data.token, data.admin);
+      // Support common response shapes: token at top level or under data
+      const token = data.token ?? data.data?.token ?? data.accessToken ?? data.access_token
+        ?? data.data?.accessToken ?? data.data?.access_token;
+      const admin = data.admin ?? data.data?.admin ?? data.user ?? data.data?.user;
+      if (!token) {
+        throw new Error('Login succeeded but no token was received. Please contact support.');
+      }
+      authService.storeAuthData(token, admin);
 
       // Handle successful login - notify parent component
       console.log('Login successful:', data);
