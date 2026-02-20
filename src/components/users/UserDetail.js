@@ -1,318 +1,361 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Layout from '../shared/Layout';
+import { fetchUserDetail, updateUserKycStatus } from '../../services/userManagementService';
 import './UserDetail.css';
+
+const formatDoB = (iso) => {
+  if (!iso) return '—';
+  const [y, m, d] = iso.split('-');
+  if (!d || !m || !y) return iso;
+  return `${d} ${m} ${y}`;
+};
+
+const formatDate = (iso) => {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch {
+    return iso;
+  }
+};
+
+const formatAmount = (n) => (n != null && n !== '' ? `$${Number(n).toLocaleString()}` : '—');
+
+const walletTypeLabel = (type) => {
+  if (!type) return '—';
+  const t = String(type).toLowerCase();
+  if (t === 'savings') return 'Savings Wallet';
+  if (t === 'xrp') return 'XRP Wallet';
+  return type;
+};
 
 const UserDetail = ({ user, onBack, onMenuClick }) => {
   const [activeTab, setActiveTab] = useState('Personal');
+  const [detail, setDetail] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showKycModal, setShowKycModal] = useState(false);
+  const [kycActionLoading, setKycActionLoading] = useState(false);
+  const [kycActionError, setKycActionError] = useState(null);
 
-  // Default user data with fallbacks for all properties
-  const defaultData = {
-    name: 'John Doe',
-    email: 'johndoe@gmail.com',
-    accountType: 'Personal',
-    kycStatus: 'Verified',
-    nationality: 'Nigerian',
-    dateOfBirth: '13 07 2003',
-    linkedIdType: 'National ID card',
-    cardNumber: '32415473628',
-    walletAddress: 'HTWR524TRy3',
-    businessName: 'Make BELIEVE Corp',
-    businessEmail: 'johndoe@gmail.com',
-    businessDescription: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-    wallets: [
-      { name: 'John Doe', type: 'Savings Wallet', amount: '$14,800', date: '13 Jul 20205' },
-      { name: 'John Doe', type: 'XPR Wallet', amount: '$14,800', date: '13 Jul 20205' },
-      { name: 'John Doe', type: 'Savings Wallet', amount: '$14,800', date: '13 Jul 20205' },
-      { name: 'John Doe', type: 'Savings Wallet', amount: '$14,800', date: '13 Jul 20205' },
-      { name: 'John Doe', type: 'Savings Wallet', amount: '$14,800', date: '13 Jul 20205' },
-      { name: 'John Doe', type: 'Savings Wallet', amount: '$14,800', date: '13 Jul 20205' }
-    ],
-    escrows: [
-      { id: '$324', parties: 'Parties involved', status: 'In progress' },
-      { id: '$324', parties: 'Parties involved', status: 'Completed' },
-      { id: '$324', parties: 'Parties involved', status: 'Disputed' },
-      { id: '$324', parties: 'Parties involved', status: 'Resolved' },
-      { id: '$324', parties: 'Parties involved', status: 'Resolved' }
-    ],
-    payrolls: [
-      { teamName: 'Angelo group', teamMembers: '18', amount: '$14,800', duration: '28days', status: 'Active' },
-      { teamName: 'Beta team', teamMembers: '25', amount: '$22,500', duration: '15days', status: 'Inactive' },
-      { teamName: 'Charlie squad', teamMembers: '12', amount: '$9,600', duration: '40days', status: 'Active' },
-      { teamName: 'Delta crew', teamMembers: '30', amount: '$31,200', duration: '22days', status: 'Pending' }
-    ],
-    transactions: [
-      { type: 'Funds Transferred', amount: '$324', time: '3m ago', description: 'You transferred $324 to Jane foster' },
-      { type: 'Payment Received', amount: '$450', time: '10m ago', description: 'You received $450 from Mark Thompson' },
-      { type: 'Invoice Sent', amount: '$150', time: '15m ago', description: 'You sent an invoice of $150 to Sarah Lee' },
-      { type: 'Refund Processed', amount: '$75', time: '20m ago', description: 'You refunded $75 to Alex Smith' },
-      { type: 'Transaction Declined', amount: '$600', time: '25m ago', description: 'Your payment of $600 to Laura Chen was declined' }
-    ],
-    disputes: [
-      { name: 'Parties involved', parties: 'Parties involved', status: 'In progress', date: '3rd Dec 2025' },
-      { name: 'Contract Breach', parties: 'Company A, Company B', status: 'Resolved', date: '15th Nov 2023' },
-      { name: 'Payment Dispute', parties: 'Client X, Provider Y', status: 'Pending', date: '22nd Jan 2024' },
-      { name: 'Intellectual Property', parties: 'Inventor Z, Corporation Q', status: 'In progress', date: '30th Apr 2025' },
-      { name: 'Service Agreement', parties: 'User M, Service N', status: 'Closed', date: '10th Jul 2023' }
-    ]
-  };
+  const userId = user?.id;
 
-  // Merge user data with defaults, ensuring all arrays exist
-  const userData = {
-    ...defaultData,
-    ...user,
-    wallets: user?.wallets || defaultData.wallets,
-    escrows: user?.escrows || defaultData.escrows,
-    payrolls: user?.payrolls || defaultData.payrolls,
-    transactions: user?.transactions || defaultData.transactions,
-    disputes: user?.disputes || defaultData.disputes
-  };
+  const loadUserDetail = useCallback(() => {
+    if (!userId) return Promise.resolve();
+    return fetchUserDetail(userId).then((res) => {
+      console.log('User detail API response:', res);
+      if (res?.success && res?.data) setDetail(res.data);
+    });
+  }, [userId]);
 
-  const getStatusClass = (status) => {
-    const statusLower = status.toLowerCase();
-    if (statusLower === 'verified' || statusLower === 'completed' || statusLower === 'resolved' || statusLower === 'active') {
-      return 'status-verified';
-    } else if (statusLower === 'in progress' || statusLower === 'pending') {
-      return 'status-in-progress';
-    } else if (statusLower === 'disputed' || statusLower === 'inactive') {
-      return 'status-disputed';
-    } else if (statusLower === 'closed') {
-      return 'status-closed';
+  useEffect(() => {
+    if (!userId) {
+      setDetail(null);
+      setLoading(false);
+      setError(null);
+      return;
     }
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetchUserDetail(userId)
+      .then((res) => {
+        console.log('User detail API response:', res);
+        if (!cancelled && res?.success && res?.data) setDetail(res.data);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e.message || 'Failed to load user');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  const handleKycUpdate = (status) => {
+    if (!userId || kycActionLoading) return;
+    setKycActionError(null);
+    setKycActionLoading(true);
+    updateUserKycStatus(userId, status)
+      .then(() => loadUserDetail())
+      .then(() => setShowKycModal(false))
+      .catch((e) => setKycActionError(e.message || 'Failed to update KYC status'))
+      .finally(() => setKycActionLoading(false));
+  };
+
+  const data = useMemo(() => {
+    const d = detail;
+    const kyc = d?.userKyc;
+    const wallets = (d?.walletDetails?.items || []).map((w) => ({
+      name: w.walletName ?? '—',
+      type: walletTypeLabel(w.walletType),
+      amount: formatAmount(w.amountUsd),
+      date: (w.date != null ? formatDate(w.date) : formatDate(w.createdAt)) ?? '—',
+    }));
+    const escrows = (d?.escrowDetails?.items || []).map((e) => ({
+      id: e.escrowIdNo ?? '—',
+      parties: e.partiesInvolved ?? '—',
+      amount: formatAmount(e.amountUsd),
+      status: e.status ?? '—',
+    }));
+    const transactions = (d?.transactionHistory?.items || []).map((t) => ({
+      type: t.typeLabel ?? t.type ?? '—',
+      description: t.description ?? '—',
+      amount: formatAmount(t.amountUsd),
+      time: t.createdAtAgo ?? '—',
+    }));
+    const disputes = (d?.disputes?.items || []).map((x) => ({
+      name: (x.name || x.caseId) ?? '—',
+      parties: x.partiesInvolved ?? '—',
+      status: x.status ?? '—',
+      date: x.date ? formatDate(x.date) : '—',
+    }));
+
+    const rawAccountType = d?.accountType ?? user?.accountType ?? 'Personal';
+    const accountTypeDisplay = rawAccountType === 'business_suite' ? 'Business suite' : (rawAccountType ? String(rawAccountType).charAt(0).toUpperCase() + String(rawAccountType).slice(1).toLowerCase() : 'Personal');
+
+    return {
+      name: d?.name ?? user?.name ?? '—',
+      email: d?.email ?? user?.email ?? '—',
+      accountType: accountTypeDisplay,
+      kycStatus: d?.kycStatus ?? kyc?.status ?? user?.kycStatus ?? '—',
+      nationality: d?.nationality ?? user?.nationality ?? '—',
+      dateOfBirth: d?.dateOfBirth ? formatDoB(d.dateOfBirth) : '—',
+      linkedIdType: kyc?.linkedIdType ?? d?.linkedIdType ?? '—',
+      cardNumber: kyc?.cardNumber ?? d?.cardNumber ?? '—',
+      walletAddress: d?.walletAddress ?? kyc?.walletAddress ?? '—',
+      profilePictureUrl: d?.profilePictureUrl ?? null,
+      businessName: d?.businessName ?? '—',
+      businessEmail: d?.businessEmail ?? '—',
+      businessDescription: d?.businessDescription ?? null,
+      accountCreatedDate: d?.accountCreatedDate ? formatDate(d.accountCreatedDate) : '—',
+      lastActivityAgo: d?.lastActivityAgo ?? '—',
+      totalVolume: d?.totalVolume != null ? formatAmount(d.totalVolume) : '—',
+      savingsAccountCount: d?.savingsAccountCount ?? '—',
+      wallets,
+      escrows,
+      transactions,
+      disputes,
+      walletTotal: d?.walletDetails?.total ?? d?.walletDetails?.items?.length ?? wallets.length,
+      escrowTotal: d?.escrowDetails?.total ?? d?.escrowCreatedCount ?? escrows.length,
+      disputeTotal: d?.disputes?.total ?? d?.disputes?.items?.length ?? disputes.length,
+      kycDocuments: kyc?.documents ?? d?.userKyc?.documents ?? { liveSelfie: null, front: null, back: null },
+    };
+  }, [detail, user]);
+
+  const statusClass = (status) => {
+    const s = (status || '').toLowerCase();
+    if (['verified', 'completed', 'resolved', 'active'].some((x) => s.includes(x))) return 'ud-status--success';
+    if (['in progress', 'pending'].some((x) => s.includes(x))) return 'ud-status--progress';
+    if (['disputed', 'inactive'].some((x) => s.includes(x))) return 'ud-status--disputed';
+    if (s.includes('closed')) return 'ud-status--closed';
     return '';
   };
 
-  const getTransactionTypeClass = (type) => {
-    const typeLower = type.toLowerCase();
-    if (typeLower.includes('received')) {
-      return 'transaction-received';
-    } else if (typeLower.includes('transferred') || typeLower.includes('sent')) {
-      return 'transaction-sent';
-    } else if (typeLower.includes('refund')) {
-      return 'transaction-refund';
-    } else if (typeLower.includes('declined')) {
-      return 'transaction-declined';
-    }
-    return 'transaction-default';
-  };
+  const kycDisplay = (s) => (s ? String(s).charAt(0).toUpperCase() + String(s).slice(1) : '—');
+
+  if (!user) {
+    return (
+      <Layout activeMenu="users" onMenuClick={onMenuClick}>
+        <div className="ud-page">
+          <div className="ud-empty">No user selected. <button type="button" className="ud-back-link" onClick={onBack}>Back to User Management</button></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (loading) {
+    return (
+      <Layout activeMenu="users" onMenuClick={onMenuClick}>
+        <div className="ud-page">
+          <div className="ud-loading">Loading user details…</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout activeMenu="users" onMenuClick={onMenuClick}>
+        <div className="ud-page">
+          <div className="ud-error">{error}. <button type="button" className="ud-back-link" onClick={onBack}>Back to User Management</button></div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout activeMenu="users" onMenuClick={onMenuClick}>
-      <div className="user-detail-container">
-        {/* Header */}
-        <header className="main-header">
-          <div className="breadcrumb">
-            <span onClick={onBack} style={{ cursor: 'pointer' }}>Admin End &gt; User Management</span>
+      <div className="ud-page">
+        <header className="ud-header">
+          <div className="ud-breadcrumb" onClick={onBack} onKeyDown={(e) => e.key === 'Enter' && onBack?.()} role="button" tabIndex={0}>
+            Admin End &gt; User Management
           </div>
-          <input className="search-bar" type="text" placeholder="Search" />
-          <div className="profile">
-            <button type="button" className="notification-btn" aria-label="Notifications">
+          <div className="ud-search">
+            <svg className="ud-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" />
+              <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            <input type="text" placeholder="Search" />
+          </div>
+          <div className="ud-profile">
+            <button type="button" className="ud-notification-btn" aria-label="Notifications">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M10 2C7.23858 2 5 4.23858 5 7V11C5 12.1046 4.10457 13 3 13H17C15.8954 13 15 12.1046 15 11V7C15 4.23858 12.7614 2 10 2Z" stroke="currentColor" strokeWidth="2"/>
-                <path d="M7 15C7 16.1046 8.34315 17 10 17C11.6569 17 13 16.1046 13 15" stroke="currentColor" strokeWidth="2"/>
+                <path d="M10 2C7.23858 2 5 4.23858 5 7V11C5 12.1046 4.10457 13 3 13H17C15.8954 13 15 12.1046 15 11V7C15 4.23858 12.7614 2 10 2Z" stroke="currentColor" strokeWidth="2" />
+                <path d="M7 15C7 16.1046 8.34315 17 10 17C11.6569 17 13 16.1046 13 15" stroke="currentColor" strokeWidth="2" />
               </svg>
-              <span className="notification-dot" />
+              <span className="ud-notification-dot" />
             </button>
-            <span className="avatar">SC</span>
-            <div className="profile-info">
-              <span className="profile-name-row">
-                <span className="name">Sarah Chen</span>
-                <img src={require('../../assets/images/Frame.png')} alt="" className="verified-badge" />
+            <span className="ud-avatar">SC</span>
+            <div className="ud-profile-info">
+              <span className="ud-profile-name-row">
+                <span className="ud-profile-name">Sarah Chen</span>
+                <img src={require('../../assets/images/Frame.png')} alt="" className="ud-verified-badge" />
               </span>
-              <span className="role">Freelancer</span>
+              <span className="ud-profile-role">Freelancer</span>
             </div>
           </div>
         </header>
 
-        {/* Main Content Grid */}
-        <div className="user-detail-grid">
-          {/* Left Column - User Details and KYC */}
-          <div className="left-column-section">
-            {/* User Details Section */}
-            <div className="user-detail-card user-details-section">
-              <div className="user-details-header">
-                <div className="user-details-title-section">
-                  <span className="section-dot"></span>
-                  <h3 className="user-details-title">User Details</h3>
-                </div>
-                <div className="user-tabs">
-                  <button 
-                    className={`user-tab ${activeTab === 'Personal' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('Personal')}
-                  >
-                    Personal
-                  </button>
-                  <button 
-                    className={`user-tab ${activeTab === 'Business suite' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('Business suite')}
-                  >
-                    Business suite
-                  </button>
+        <div className="ud-grid">
+          <div className="ud-left">
+            {/* User Details */}
+            <section className="ud-card ud-user-details">
+              <div className="ud-card-title-row">
+                <span className="ud-card-bar" />
+                <h3 className="ud-card-title">User Details</h3>
+              </div>
+              <div className="ud-user-hero">
+                {data.profilePictureUrl ? (
+                  <img src={data.profilePictureUrl} alt="" className="ud-avatar-large ud-avatar-img" />
+                ) : (
+                  <div className="ud-avatar-large" />
+                )}
+                <div className="ud-user-hero-text">
+                  <h2 className="ud-user-name">{activeTab === 'Business suite' ? data.businessName : data.name}</h2>
+                  <p className="ud-user-email">{activeTab === 'Business suite' ? data.businessEmail : data.email}</p>
                 </div>
               </div>
-              <div className="user-profile-section">
-                <div className="profile-picture-placeholder"></div>
-                <div className="user-info">
-                  <h2 className="user-name">
-                    {activeTab === 'Business suite' ? userData.businessName : userData.name}
-                  </h2>
-                  <p className="user-email">
-                    {activeTab === 'Business suite' ? userData.businessEmail : userData.email}
-                  </p>
-                  {activeTab === 'Business suite' && (
-                    <p className="business-description">{userData.businessDescription}</p>
-                  )}
-                </div>
+              <div className="ud-tabs">
+                <button type="button" className={`ud-tab ${activeTab === 'Personal' ? 'ud-tab--active' : ''}`} onClick={() => setActiveTab('Personal')}>
+                  Personal
+                </button>
+                <button type="button" className={`ud-tab ${activeTab === 'Business suite' ? 'ud-tab--active' : ''}`} onClick={() => setActiveTab('Business suite')}>
+                  Business suite
+                </button>
               </div>
               {activeTab === 'Personal' && (
-                <div className="user-attributes">
-                  <div className="attribute-item">
-                    <span className="attribute-label">Account Type:</span>
-                    <span className="attribute-value">{userData.accountType}</span>
+                <div className="ud-attrs">
+                  <div className="ud-attr">
+                    <span className="ud-attr-label">Account Type:</span>
+                    <span className="ud-attr-value">{data.accountType}</span>
                   </div>
-                  <div className="attribute-separator"></div>
-                  <div className="attribute-item">
-                    <span className="attribute-label">KYC:</span>
-                    <span className={`kyc-badge ${userData.kycStatus.toLowerCase()}`}>
-                      {userData.kycStatus}
-                    </span>
+                  <div className="ud-attr">
+                    <span className="ud-attr-label">KYC:</span>
+                    <span className={`ud-kyc-badge ud-kyc-badge--${(data.kycStatus || '').toLowerCase()}`}>{kycDisplay(data.kycStatus)}</span>
                   </div>
-                  <div className="attribute-separator"></div>
-                  <div className="attribute-item">
-                    <span className="attribute-label">Nationality:</span>
-                    <span className="attribute-value">{userData.nationality}</span>
+                  <div className="ud-attr">
+                    <span className="ud-attr-label">Nationality:</span>
+                    <span className="ud-attr-value">{data.nationality}</span>
                   </div>
-                  <div className="attribute-separator"></div>
-                  <div className="attribute-item">
-                    <span className="attribute-label">Date of Birth:</span>
-                    <span className="attribute-value">{userData.dateOfBirth}</span>
+                  <div className="ud-attr">
+                    <span className="ud-attr-label">Date of Birth:</span>
+                    <span className="ud-attr-value">{data.dateOfBirth}</span>
                   </div>
+                  {data.accountCreatedDate !== '—' && (
+                    <div className="ud-attr">
+                      <span className="ud-attr-label">Account created:</span>
+                      <span className="ud-attr-value">{data.accountCreatedDate}</span>
+                    </div>
+                  )}
+                  {data.lastActivityAgo !== '—' && (
+                    <div className="ud-attr">
+                      <span className="ud-attr-label">Last activity:</span>
+                      <span className="ud-attr-value">{data.lastActivityAgo}</span>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
+              {activeTab === 'Business suite' && data.businessDescription && (
+                <p className="ud-business-desc">{data.businessDescription}</p>
+              )}
+            </section>
 
-            {/* User KYC Section - Personal Tab */}
+            {/* User KYC */}
             {activeTab === 'Personal' && (
-              <div className="user-detail-card kyc-section">
-                <div className="kyc-header">
-                  <div className="kyc-title-section">
-                    <span className="section-dot"></span>
-                    <h3 className="kyc-title">User KYC</h3>
+              <section className="ud-card ud-kyc">
+                <div className="ud-kyc-head">
+                  <div className="ud-card-title-row">
+                    <span className="ud-card-bar" />
+                    <h3 className="ud-card-title">User KYC</h3>
                   </div>
-                  <button className={`verified-badge ${userData.kycStatus.toLowerCase()}`}>
-                    {userData.kycStatus}
-                  </button>
-                </div>
-                <div className="kyc-info-horizontal">
-                  <div className="kyc-info-item-horizontal">
-                    <span className="kyc-label">Linked ID:</span>
-                    <span className="kyc-value">{userData.linkedIdType}</span>
-                  </div>
-                  <div className="kyc-separator"></div>
-                  <div className="kyc-info-item-horizontal">
-                    <span className="kyc-label">Card number:</span>
-                    <span className="kyc-value">{userData.cardNumber}</span>
-                  </div>
-                  <div className="kyc-separator"></div>
-                  <div className="kyc-info-item-horizontal">
-                    <span className="kyc-label">Wallet Address:</span>
-                    <span className="kyc-value">{userData.walletAddress}</span>
+                  <div className="ud-kyc-head-actions">
+                    <span className={`ud-kyc-badge ud-kyc-badge--${(data.kycStatus || '').toLowerCase()}`}>{kycDisplay(data.kycStatus)}</span>
+                    <button type="button" className="ud-kyc-update-btn" onClick={() => setShowKycModal(true)}>
+                      Update KYC status
+                    </button>
                   </div>
                 </div>
-                <div className="kyc-images">
-                  <div className="kyc-image-wrapper">
-                    <div className="kyc-image-placeholder"></div>
-                    <span className="kyc-image-label">Live Selfie</span>
+                <div className="ud-kyc-fields">
+                  <div className="ud-kyc-field">
+                    <span className="ud-kyc-label">Linked ID:</span>
+                    <span className="ud-kyc-value">{data.linkedIdType}</span>
                   </div>
-                  <div className="kyc-image-wrapper">
-                    <div className="kyc-image-placeholder"></div>
-                    <span className="kyc-image-label">Front</span>
+                  <div className="ud-kyc-field">
+                    <span className="ud-kyc-label">Card number:</span>
+                    <span className="ud-kyc-value">{data.cardNumber}</span>
                   </div>
-                  <div className="kyc-image-wrapper">
-                    <div className="kyc-image-placeholder"></div>
-                    <span className="kyc-image-label">Back</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Payroll Details Section - Business Suite Tab */}
-            {activeTab === 'Business suite' && (
-              <div className="user-detail-card payroll-section">
-                <div className="payroll-header">
-                  <div className="payroll-title-section">
-                    <span className="section-dot"></span>
-                    <h3 className="payroll-title">Payroll Details</h3>
-                  </div>
-                  <div className="payroll-count">
-                    <span className="payroll-count-label">Active Payroll</span>
-                    <span className="payroll-count-number">20</span>
+                  <div className="ud-kyc-field">
+                    <span className="ud-kyc-label">Wallet Address:</span>
+                    <span className="ud-kyc-value">{data.walletAddress}</span>
                   </div>
                 </div>
-                <div className="payroll-table-container">
-                  <table className="payroll-table">
-                    <thead>
-                      <tr>
-                        <th>Team Name</th>
-                        <th>Team members</th>
-                        <th>Amount</th>
-                        <th>Duration</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {userData.payrolls.map((payroll, index) => (
-                        <tr key={index}>
-                          <td>{payroll.teamName}</td>
-                          <td>{payroll.teamMembers}</td>
-                          <td>{payroll.amount}</td>
-                          <td>{payroll.duration}</td>
-                          <td>
-                            <span className={`payroll-status ${getStatusClass(payroll.status)}`}>
-                              {payroll.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="ud-kyc-docs">
+                  <div className="ud-kyc-doc">
+                    {data.kycDocuments?.liveSelfie ? (
+                      <img src={data.kycDocuments.liveSelfie} alt="Live Selfie" className="ud-kyc-doc-img" />
+                    ) : (
+                      <div className="ud-kyc-doc-placeholder" />
+                    )}
+                    <span className="ud-kyc-doc-label">Live Selfie</span>
+                  </div>
+                  <div className="ud-kyc-doc">
+                    {data.kycDocuments?.front ? (
+                      <img src={data.kycDocuments.front} alt="ID Front" className="ud-kyc-doc-img" />
+                    ) : (
+                      <div className="ud-kyc-doc-placeholder" />
+                    )}
+                    <span className="ud-kyc-doc-label">Front</span>
+                  </div>
+                  <div className="ud-kyc-doc">
+                    {data.kycDocuments?.back ? (
+                      <img src={data.kycDocuments.back} alt="ID Back" className="ud-kyc-doc-img" />
+                    ) : (
+                      <div className="ud-kyc-doc-placeholder" />
+                    )}
+                    <span className="ud-kyc-doc-label">Back</span>
+                  </div>
                 </div>
-                <div className="pagination">
-                  <button className="pagination-btn" disabled>
-                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                      <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                  <button className="pagination-number active">1</button>
-                  <button className="pagination-number">2</button>
-                  <span className="pagination-ellipsis">...</span>
-                  <button className="pagination-number">9</button>
-                  <button className="pagination-number">10</button>
-                  <button className="pagination-btn">
-                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                      <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
+              </section>
             )}
           </div>
 
-          {/* Right Column - Wallet Details */}
-          <div className="right-column-section">
-            {/* Wallet Details Section */}
-            <div className="user-detail-card wallet-details-section">
-              <div className="wallet-header">
-                <div className="wallet-title-section">
-                  <span className="section-dot"></span>
-                  <h3 className="wallet-title">Wallet Details</h3>
+          <div className="ud-right">
+            {/* Wallet Details */}
+            <section className="ud-card ud-wallets">
+              <div className="ud-wallet-head">
+                <div className="ud-card-title-row">
+                  <span className="ud-card-bar" />
+                  <h3 className="ud-card-title">Wallet Details</h3>
                 </div>
-                <div className="wallet-count">
-                  <span className="wallet-count-label">Active Wallet</span>
-                  <span className="wallet-count-number">12</span>
+                <div className="ud-pill">
+                  <span className="ud-pill-label">Active Wallet</span>
+                  <span className="ud-pill-value">{data.walletTotal}</span>
                 </div>
               </div>
-              <div className="wallet-table-container">
-                <table className="wallet-table">
+              <div className="ud-table-wrap">
+                <table className="ud-table">
                   <thead>
                     <tr>
                       <th>Wallet name</th>
@@ -322,234 +365,157 @@ const UserDetail = ({ user, onBack, onMenuClick }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {userData.wallets.map((wallet, index) => (
-                      <tr key={index}>
-                        <td>{wallet.name}</td>
-                        <td>{wallet.type}</td>
-                        <td>{wallet.amount}</td>
-                        <td>{wallet.date}</td>
+                    {(data.wallets || []).map((w, i) => (
+                      <tr key={i}>
+                        <td><span className="ud-row-dot" /><span>{w.name}</span></td>
+                        <td>{w.type}</td>
+                        <td>{w.amount}</td>
+                        <td>{w.date}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              <div className="pagination">
-                <button className="pagination-btn" disabled>
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                    <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+              <div className="ud-pagination">
+                <button type="button" className="ud-page-btn" disabled aria-label="Previous">
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </button>
-                <button className="pagination-number active">1</button>
-                <button className="pagination-number">2</button>
-                <span className="pagination-ellipsis">...</span>
-                <button className="pagination-number">9</button>
-                <button className="pagination-number">10</button>
-                <button className="pagination-btn">
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                    <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                <button type="button" className="ud-page-num ud-page-num--active">1</button>
+                <button type="button" className="ud-page-num">2</button>
+                <span className="ud-page-ellipsis">...</span>
+                <button type="button" className="ud-page-num">9</button>
+                <button type="button" className="ud-page-num">10</button>
+                <button type="button" className="ud-page-btn" aria-label="Next">
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </button>
               </div>
-            </div>
+            </section>
           </div>
         </div>
 
-        {/* Three Cards Row - Full Width */}
-        <div className="three-cards-row">
-          {/* Escrow/Supplier Details Card */}
-          {activeTab === 'Personal' ? (
-            <div className="user-detail-card escrow-card">
-              <div className="card-header">
-                <div className="card-title-section">
-                  <span className="section-dot"></span>
-                  <h3 className="card-title">Active Escrow 20</h3>
-                </div>
+        {/* Bottom row: Escrow, Transactions, Disputes */}
+        <div className="ud-bottom-row">
+          <section className="ud-card ud-escrow">
+            <div className="ud-escrow-head">
+              <div className="ud-card-title-row">
+                <span className="ud-card-bar" />
+                <h3 className="ud-card-title">Escrow Details</h3>
               </div>
-              <div className="escrow-list">
-                {userData.escrows.map((escrow, index) => (
-                  <div key={index} className="escrow-item">
-                    <div className="escrow-id">Escrow ID No</div>
-                    <div className="escrow-parties">Parties involved</div>
-                    <div className="escrow-amount">{escrow.id}</div>
-                    <div className={`escrow-status ${getStatusClass(escrow.status)}`}>
-                      {escrow.status}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="pagination">
-                <button className="pagination-btn" disabled>
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                    <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-                <button className="pagination-number active">1</button>
-                <button className="pagination-number">2</button>
-                <span className="pagination-ellipsis">...</span>
-                <button className="pagination-number">9</button>
-                <button className="pagination-number">10</button>
-                <button className="pagination-btn">
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                    <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
+              <div className="ud-pill">
+                <span className="ud-pill-label">Active Escrow</span>
+                <span className="ud-pill-value">{data.escrowTotal}</span>
               </div>
             </div>
-          ) : (
-            <div className="user-detail-card supplier-card">
-              <div className="card-header">
-                <div className="card-title-section">
-                  <span className="section-dot"></span>
-                  <h3 className="card-title">Supplier Details</h3>
-                </div>
-                <div className="supplier-count">
-                  <span className="supplier-count-label">Active Escrow</span>
-                  <span className="supplier-count-number">20</span>
-                </div>
-              </div>
-              <div className="escrow-list">
-                {userData.escrows.map((escrow, index) => (
-                  <div key={index} className="escrow-item">
-                    <div className="escrow-id">Escrow ID No</div>
-                    <div className="escrow-parties">Parties involved</div>
-                    <div className="escrow-amount">{escrow.id}</div>
-                    <div className={`escrow-status ${getStatusClass(escrow.status)}`}>
-                      {escrow.status}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="pagination">
-                <button className="pagination-btn" disabled>
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                    <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-                <button className="pagination-number active">1</button>
-                <button className="pagination-number">2</button>
-                <span className="pagination-ellipsis">...</span>
-                <button className="pagination-number">9</button>
-                <button className="pagination-number">10</button>
-                <button className="pagination-btn">
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                    <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Transaction Type Card */}
-          <div className="user-detail-card transactions-card">
-            <div className="card-header">
-              <div className="card-title-section">
-                <span className="section-dot"></span>
-                <h3 className="card-title">Transaction type</h3>
-              </div>
-            </div>
-            <div className="transactions-list">
-              {userData.transactions.map((transaction, index) => (
-                <div key={index} className="transaction-item">
-                  <div className="transaction-header">
-                    <span className={`transaction-type ${getTransactionTypeClass(transaction.type)}`}>
-                      {transaction.type}
-                    </span>
-                    <span className="transaction-amount">{transaction.amount}</span>
-                    <span className="transaction-time">{transaction.time}</span>
-                  </div>
-                  <div className="transaction-description">{transaction.description}</div>
+            <div className="ud-list">
+              {(data.escrows || []).map((e, i) => (
+                <div key={i} className="ud-list-row ud-escrow-row">
+                  <span className="ud-escrow-id">{e.id}</span>
+                  <span className="ud-escrow-parties">{e.parties}</span>
+                  <span className="ud-escrow-amount">{e.amount}</span>
+                  <span className={`ud-status ${statusClass(e.status)}`}>{e.status}</span>
                 </div>
               ))}
             </div>
-            <div className="pagination">
-              <button className="pagination-btn" disabled>
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                  <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-              <button className="pagination-number active">1</button>
-              <button className="pagination-number">2</button>
-              <span className="pagination-ellipsis">...</span>
-              <button className="pagination-number">9</button>
-              <button className="pagination-number">10</button>
-              <button className="pagination-btn">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                  <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
+            <div className="ud-pagination">
+              <button type="button" className="ud-page-btn" disabled aria-label="Previous"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+              <button type="button" className="ud-page-num ud-page-num--active">1</button>
+              <button type="button" className="ud-page-num">2</button>
+              <span className="ud-page-ellipsis">...</span>
+              <button type="button" className="ud-page-num">9</button>
+              <button type="button" className="ud-page-num">10</button>
+              <button type="button" className="ud-page-btn" aria-label="Next"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+            </div>
+          </section>
+
+          <section className="ud-card ud-transactions">
+            <div className="ud-card-title-row">
+              <span className="ud-card-bar" />
+              <h3 className="ud-card-title">Transaction type</h3>
+            </div>
+            <div className="ud-list">
+              {(data.transactions || []).map((t, i) => (
+                <div key={i} className="ud-list-row ud-tx-row">
+                  <div className="ud-tx-main">
+                    <span className="ud-tx-type">{t.type}</span>
+                    <span className="ud-tx-amount">{t.amount}</span>
+                    <span className="ud-tx-time">{t.time}</span>
+                  </div>
+                  <div className="ud-tx-desc">{t.description}</div>
+                </div>
+              ))}
+            </div>
+            <div className="ud-pagination">
+              <button type="button" className="ud-page-btn" disabled aria-label="Previous"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+              <button type="button" className="ud-page-num ud-page-num--active">1</button>
+              <button type="button" className="ud-page-num">2</button>
+              <span className="ud-page-ellipsis">...</span>
+              <button type="button" className="ud-page-num">9</button>
+              <button type="button" className="ud-page-num">10</button>
+              <button type="button" className="ud-page-btn" aria-label="Next"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+            </div>
+          </section>
+
+          <section className="ud-card ud-disputes">
+            <div className="ud-escrow-head">
+              <div className="ud-card-title-row">
+                <span className="ud-card-bar" />
+                <h3 className="ud-card-title">API Integrations</h3>
+              </div>
+              <div className="ud-pill">
+                <span className="ud-pill-label">Active Dispute</span>
+                <span className="ud-pill-value">{data.disputeTotal}</span>
+              </div>
+            </div>
+            <div className="ud-list">
+              {(data.disputes || []).map((d, i) => (
+                <div key={i} className="ud-list-row ud-dispute-row">
+                  <span className="ud-dispute-name">{d.name}</span>
+                  <span className="ud-dispute-parties">{d.parties}</span>
+                  <span className={`ud-status ${statusClass(d.status)}`}>{d.status}</span>
+                  <span className="ud-dispute-date">{d.date}</span>
+                </div>
+              ))}
+            </div>
+            <div className="ud-pagination">
+              <button type="button" className="ud-page-btn" disabled aria-label="Previous"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+              <button type="button" className="ud-page-num ud-page-num--active">1</button>
+              <button type="button" className="ud-page-num">2</button>
+              <span className="ud-page-ellipsis">...</span>
+              <button type="button" className="ud-page-num">9</button>
+              <button type="button" className="ud-page-num">10</button>
+              <button type="button" className="ud-page-btn" aria-label="Next"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+            </div>
+          </section>
+        </div>
+
+        {/* KYC status update modal */}
+        {showKycModal && (
+          <div className="ud-kyc-modal-backdrop" onClick={() => !kycActionLoading && setShowKycModal(false)}>
+            <div className="ud-kyc-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="ud-kyc-modal-header">
+                <h3 className="ud-kyc-modal-title">Update KYC status</h3>
+                <button type="button" className="ud-kyc-modal-close" onClick={() => !kycActionLoading && setShowKycModal(false)} aria-label="Close">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M15 5L5 15M5 5l10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </button>
+              </div>
+              <div className="ud-kyc-modal-body">
+                <p className="ud-kyc-modal-text">Current status: <span className={`ud-kyc-badge ud-kyc-badge--${(data.kycStatus || '').toLowerCase()}`}>{kycDisplay(data.kycStatus)}</span></p>
+                {kycActionError && <p className="ud-kyc-modal-error">{kycActionError}</p>}
+                <div className="ud-kyc-modal-actions">
+                  <button type="button" className="ud-kyc-modal-btn ud-kyc-modal-btn--approve" onClick={() => handleKycUpdate('verified')} disabled={kycActionLoading}>
+                    {kycActionLoading ? 'Updating...' : 'Approve'}
+                  </button>
+                  <button type="button" className="ud-kyc-modal-btn ud-kyc-modal-btn--decline" onClick={() => handleKycUpdate('declined')} disabled={kycActionLoading}>
+                    Decline
+                  </button>
+                  <button type="button" className="ud-kyc-modal-btn ud-kyc-modal-btn--secondary" onClick={() => !kycActionLoading && setShowKycModal(false)} disabled={kycActionLoading}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-
-          {/* API Integrations / Disputes Card */}
-          {activeTab === 'Personal' ? (
-            <div className="user-detail-card disputes-card">
-              <div className="card-header">
-                <div className="card-title-section">
-                  <span className="section-dot"></span>
-                  <h3 className="card-title">Active Dispute 3</h3>
-                </div>
-              </div>
-              <div className="disputes-list">
-                {userData.disputes.map((dispute, index) => (
-                  <div key={index} className="dispute-item">
-                    <div className="dispute-name">{dispute.name}</div>
-                    <div className="dispute-parties">{dispute.parties}</div>
-                    <div className={`dispute-status ${getStatusClass(dispute.status)}`}>
-                      {dispute.status}
-                    </div>
-                    <div className="dispute-date">{dispute.date}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="pagination">
-                <button className="pagination-btn" disabled>
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                    <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-                <button className="pagination-number active">1</button>
-                <button className="pagination-number">2</button>
-                <span className="pagination-ellipsis">...</span>
-                <button className="pagination-number">9</button>
-                <button className="pagination-number">10</button>
-                <button className="pagination-btn">
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                    <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="user-detail-card api-integrations-card">
-              <div className="card-header">
-                <div className="card-title-section">
-                  <span className="section-dot"></span>
-                  <h3 className="card-title">API Integrations</h3>
-                </div>
-              </div>
-              <div className="api-integrations-content">
-                <p className="api-empty-message">No integrations configured</p>
-              </div>
-              <div className="pagination">
-                <button className="pagination-btn" disabled>
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                    <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-                <button className="pagination-number active">1</button>
-                <button className="pagination-number">2</button>
-                <span className="pagination-ellipsis">...</span>
-                <button className="pagination-number">9</button>
-                <button className="pagination-number">10</button>
-                <button className="pagination-btn">
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                    <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </Layout>
   );

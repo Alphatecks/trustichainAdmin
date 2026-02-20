@@ -163,6 +163,22 @@
   gap: 16px;
 }
 
+.um-stats-error {
+  grid-column: 1 / -1;
+  padding: 10px 14px;
+  background: #fef2f2;
+  color: #b91c1c;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.um-table-loading,
+.um-table-empty {
+  text-align: center;
+  padding: 24px;
+  color: #666;
+}
+
 .um-card {
   background: #fff;
   border-radius: 10px;
