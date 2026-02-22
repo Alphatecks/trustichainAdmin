@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Layout from '../shared/Layout';
 import './Settings.css';
 
-const Settings = ({ onMenuClick }) => {
+const Settings = ({ onLogout, onMenuClick }) => {
   const [email, setEmail] = useState('sarah.chen@example.com');
   const [notifyEmail, setNotifyEmail] = useState(true);
   const [notifyPush, setNotifyPush] = useState(true);
@@ -156,6 +156,16 @@ const Settings = ({ onMenuClick }) => {
                 </select>
               </div>
             </div>
+          </section>
+
+          <section className="set-card">
+            <div className="set-section-title">
+              <span className="set-section-bar" />
+              <span>Account</span>
+            </div>
+            <button type="button" className="set-btn set-btn--logout" onClick={onLogout}>
+              Log out
+            </button>
           </section>
         </div>
       </div>

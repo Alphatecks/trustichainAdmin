@@ -152,59 +152,57 @@
   flex-shrink: 0;
 }
 
-/* ----- Two-column content ----- */
+/* ----- Single-column content ----- */
 .dr-content {
-  display: flex;
-  gap: 24px;
-  align-items: flex-start;
-  flex-wrap: wrap;
-}
-
-.dr-left {
-  flex: 0 0 380px;
-  min-width: 320px;
-  max-width: 420px;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-.dr-right {
-  flex: 1;
-  min-width: 0;
+/* ----- Overview section: 4 cards in a row ----- */
+.dr-metrics-error {
+  color: #c53030;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
 }
 
-/* ----- Overview card ----- */
-.dr-overview-card {
-  background: #fff;
-  border-radius: 14px;
-  padding: 20px 18px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+.dr-overview-section {
+  width: 100%;
 }
 
-.dr-overview-card .dr-section-title {
+.dr-overview-section .dr-section-title {
   margin-bottom: 16px;
 }
 
-.dr-metrics-grid {
+.dr-overview-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
 }
 
-.dr-metric {
-  background: #fff;
-  border: 1px solid #f0f0f0;
-  border-radius: 10px;
-  padding: 14px 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+@media (max-width: 1100px) {
+  .dr-overview-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .dr-overview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dr-overview-card {
+  background: #e8e8e8;
+  border-radius: 12px;
+  padding: 20px 18px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
+  gap: 10px;
 }
 
-.dr-metric-head {
+.dr-overview-card-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -212,35 +210,51 @@
   gap: 8px;
 }
 
-.dr-metric-icon {
-  width: 32px;
-  height: 32px;
-  background: #0671FF;
-  border-radius: 8px;
+.dr-overview-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  color: #fff;
 }
 
-.dr-metric-trend {
+.dr-overview-icon--people {
+  background: #0671FF;
+}
+
+.dr-overview-icon--active {
+  background: #059669;
+}
+
+.dr-overview-icon--resolved {
+  background: #7c3aed;
+}
+
+.dr-overview-icon--time {
+  background: #64748b;
+}
+
+.dr-overview-card .dr-metric-trend {
   display: flex;
   align-items: center;
   gap: 4px;
   font-size: 0.75rem;
-  color: #888;
+  color: #666;
   font-weight: 500;
 }
 
-.dr-metric-label {
+.dr-overview-label {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #222;
+  color: #333;
 }
 
-.dr-metric-value {
-  font-size: 2.75rem;
-  font-weight: 500;
+.dr-overview-value {
+  font-size: 2rem;
+  font-weight: 600;
   color: #111;
 }
 
@@ -252,8 +266,21 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
 }
 
+.dr-alerts-error {
+  color: #c53030;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
 .dr-alert-card .dr-section-title {
   margin-bottom: 16px;
+}
+
+.dr-alert-item--loading,
+.dr-alert-item--empty {
+  color: #666;
+  padding: 12px 0;
+  justify-content: center;
 }
 
 .dr-alert-list {
@@ -328,7 +355,16 @@
   background: #0560e6;
 }
 
-/* ----- Dispute Overview table card ----- */
+.dr-alert-card--compact .dr-section-title {
+  margin-bottom: 12px;
+}
+
+.dr-alert-card--compact .dr-alert-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* ----- Business Tools table card ----- */
 .dr-table-card {
   background: #fff;
   border-radius: 14px;
@@ -442,6 +478,21 @@
   border-bottom: 1px solid #e6e6e6;
 }
 
+.dr-list-error,
+.dr-list-loading,
+.dr-list-empty {
+  text-align: center;
+  padding: 24px 16px !important;
+  color: #666;
+}
+.dr-list-error {
+  color: #c53030;
+}
+
+.dr-table-row-clickable {
+  cursor: pointer;
+}
+
 .dr-table td {
   padding: 14px 16px;
   border-bottom: 1px solid #f0f0f0;
@@ -468,6 +519,28 @@
   border-radius: 50%;
   background: #0671FF;
   flex-shrink: 0;
+}
+
+.dr-description-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dr-desc-name {
+  font-weight: 500;
+  color: #222;
+}
+
+.dr-desc-address {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.dr-timestamp-cell {
+  font-size: 0.9rem;
+  color: #444;
+  white-space: nowrap;
 }
 
 .dr-status {
@@ -516,8 +589,9 @@
 .dr-pagination {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .dr-page-btn {

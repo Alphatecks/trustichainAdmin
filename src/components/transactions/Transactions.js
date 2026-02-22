@@ -1,20 +1,136 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../shared/Layout';
+import { fetchTransactionOverview, fetchTransactions, fetchTransactionDetail } from '../../services/transactionService';
 import './Transactions.css';
+
+const PAGE_SIZE = 10;
+
+const accountTypeFromTab = (tab) => (tab === 'Business suite' ? 'business_suite' : 'personal');
+const statusFromFilter = (filter) => {
+  if (filter === 'Successful') return 'completed';
+  if (filter === 'Pending') return 'pending';
+  if (filter === 'Failed') return 'failed';
+  return undefined;
+};
 
 const Transactions = ({ onMenuClick }) => {
   const [activeTab, setActiveTab] = useState('Personal');
   const [filterAll, setFilterAll] = useState('All');
   const [selectedTransaction, setSelectedTransaction] = useState(null);
 
-  const transactions = [
-    { id: '4F9A2C7B8D1E5F3A6B', type: 'Funds Transfer', userId: 'John Doe', sender: 'John Doe', recipient: 'Sarah Lane', amount: '$453', status: 'Successful', currency: 'USDT', date: '3h ago', dateFull: '15:40 14 Dec 2025' },
-    { id: '2B8E5D1A9C4F7E3B6D', type: 'Deposit', userId: 'Jane Smith', sender: 'Jane Smith', recipient: '—', amount: '$1,200.00', status: 'Successful', currency: 'USD', date: '5h ago', dateFull: '12:20 14 Dec 2025' },
-    { id: '5E8A4D9C2B7F1F6E8C', type: 'Withdrawal Request', userId: 'Jane Smith', sender: 'Jane Smith', recipient: '—', amount: '$250.00', status: 'Pending', currency: 'BTC', date: '2h ago', dateFull: '14:05 14 Dec 2025' },
-    { id: '7C3F9A1E6B8D2F4A5C', type: 'Escrow Release', userId: 'Michael Brown', sender: 'Michael Brown', recipient: 'Alice Green', amount: '$890.00', status: 'Successful', currency: 'USDT', date: '1h ago', dateFull: '15:10 14 Dec 2025' },
-    { id: '9A6E2C8B4F1D7E3A5B', type: 'Payment Sent', userId: 'Emily Davis', sender: 'Emily Davis', recipient: 'Bob Wilson', amount: '$150.00', status: 'Pending', currency: 'ETH', date: '45m ago', dateFull: '15:35 14 Dec 2025' },
-    { id: '8D5E8C9B2A4F1C7B9E', type: 'Payment Received', userId: 'Charlie White', sender: 'David Lee', recipient: 'Charlie White', amount: '$200.00', status: 'Failed', currency: 'USDT', date: '15m ago', dateFull: '15:45 14 Dec 2025' },
-  ];
+  const [overview, setOverview] = useState(null);
+  const [overviewLoading, setOverviewLoading] = useState(true);
+  const [overviewError, setOverviewError] = useState(null);
+
+  const [listData, setListData] = useState({ items: [], total: 0, page: 1, pageSize: PAGE_SIZE, totalPages: 0 });
+  const [listLoading, setListLoading] = useState(true);
+  const [listError, setListError] = useState(null);
+
+  const [transactionDetail, setTransactionDetail] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setOverviewError(null);
+        const res = await fetchTransactionOverview();
+        if (!cancelled && res?.success && res?.data) setOverview(res.data);
+      } catch (err) {
+        if (!cancelled) setOverviewError(err.message || 'Failed to load overview');
+      } finally {
+        if (!cancelled) setOverviewLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setListError(null);
+        const res = await fetchTransactions({
+          page: listData.page,
+          pageSize: listData.pageSize,
+          sortBy: 'created_at',
+          sortOrder: 'desc',
+          accountType: accountTypeFromTab(activeTab),
+          status: statusFromFilter(filterAll),
+        });
+        if (!cancelled && res?.success && res?.data) {
+          setListData((prev) => ({
+            ...prev,
+            items: res.data.items || [],
+            total: res.data.total ?? 0,
+            totalPages: res.data.totalPages ?? 0,
+          }));
+        }
+      } catch (err) {
+        if (!cancelled) setListError(err.message || 'Failed to load transactions');
+      } finally {
+        if (!cancelled) setListLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [listData.page, listData.pageSize, activeTab, filterAll]);
+
+  useEffect(() => {
+    if (!selectedTransaction?.id) {
+      setTransactionDetail(null);
+      setDetailError(null);
+      return;
+    }
+    let cancelled = false;
+    setDetailLoading(true);
+    setDetailError(null);
+    fetchTransactionDetail(selectedTransaction.id)
+      .then((res) => {
+        if (!cancelled && res?.success && res?.data) setTransactionDetail(res.data);
+      })
+      .catch((e) => {
+        if (!cancelled) setDetailError(e.message || 'Failed to load transaction detail');
+      })
+      .finally(() => {
+        if (!cancelled) setDetailLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [selectedTransaction?.id]);
+
+  const setPage = (p) => {
+    if (p < 1 || p > listData.totalPages) return;
+    setListLoading(true);
+    setListData((prev) => ({ ...prev, page: p }));
+  };
+
+  const formatTrend = (percent) => {
+    if (percent == null) return null;
+    const isUp = Number(percent) >= 0;
+    return (
+      <div className="tx-card-trend">
+        {isUp ? (
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 12l6 6L20 6" stroke="#0671FF" strokeWidth="2" fill="none"/></svg>
+        ) : (
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 18l6-6 10 6" stroke="#c53030" strokeWidth="2" fill="none"/></svg>
+        )}
+        <span>{isUp ? '+' : ''}{Number(percent)}% in the past month</span>
+      </div>
+    );
+  };
+
+  const { items, page, totalPages } = listData;
+
+  const getStatusClass = (status) => {
+    const s = (status || '').toLowerCase();
+    if (s === 'completed' || s === 'successful') return 'successful';
+    if (s === 'pending') return 'pending';
+    if (s === 'failed') return 'failed';
+    return '';
+  };
+
+  const formatAmount = (amountUsd) =>
+    amountUsd != null ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(amountUsd) : '—';
 
   return (
     <Layout activeMenu="transactions" onMenuClick={onMenuClick}>
@@ -48,6 +164,7 @@ const Transactions = ({ onMenuClick }) => {
         </header>
 
         <section className="tx-overview">
+          {overviewError && <div className="tx-overview-error">{overviewError}</div>}
           <div className="tx-section-title">
             <span className="tx-section-bar" />
             <span>Overview</span>
@@ -61,9 +178,12 @@ const Transactions = ({ onMenuClick }) => {
                     <path d="M3 10h18M7 14h4" stroke="#0671FF" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
                 </div>
+                {overview && formatTrend(overview.totalTransactionCountChangePercent)}
               </div>
               <div className="tx-card-label">Total Transaction</div>
-              <div className="tx-card-value">5,454</div>
+              <div className="tx-card-value">
+                {overviewLoading ? '—' : overview ? new Intl.NumberFormat('en-US').format(overview.totalTransactionCount) : '—'}
+              </div>
             </div>
             <div className="tx-card">
               <div className="tx-card-head">
@@ -74,13 +194,12 @@ const Transactions = ({ onMenuClick }) => {
                     <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
                 </div>
-                <div className="tx-card-trend">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 12l6 6L20 6" stroke="#0671FF" strokeWidth="2" fill="none"/></svg>
-                  <span>10% in the past month</span>
-                </div>
+                {overview && formatTrend(overview.totalAmountUsdChangePercent)}
               </div>
               <div className="tx-card-label">Total Amount</div>
-              <div className="tx-card-value">$5,454</div>
+              <div className="tx-card-value">
+                {overviewLoading ? '—' : overview ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(overview.totalAmountUsd) : '—'}
+              </div>
             </div>
             <div className="tx-card">
               <div className="tx-card-head">
@@ -90,13 +209,12 @@ const Transactions = ({ onMenuClick }) => {
                     <circle cx="12" cy="7" r="4" stroke="#fff" strokeWidth="2"/>
                   </svg>
                 </div>
-                <div className="tx-card-trend">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 12l6 6L20 6" stroke="#0671FF" strokeWidth="2" fill="none"/></svg>
-                  <span>10% in the past month</span>
-                </div>
+                {overview && formatTrend(overview.escrowedAmountUsdChangePercent)}
               </div>
               <div className="tx-card-label">Escrowed Amount</div>
-              <div className="tx-card-value">$5,454</div>
+              <div className="tx-card-value">
+                {overviewLoading ? '—' : overview ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(overview.escrowedAmountUsd) : '—'}
+              </div>
             </div>
             <div className="tx-card">
               <div className="tx-card-head">
@@ -107,9 +225,12 @@ const Transactions = ({ onMenuClick }) => {
                     <path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
+                {overview && formatTrend(overview.payrollAmountUsdChangePercent)}
               </div>
               <div className="tx-card-label">Payroll Amount</div>
-              <div className="tx-card-value">$5,454</div>
+              <div className="tx-card-value">
+                {overviewLoading ? '—' : overview ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(overview.payrollAmountUsd) : '—'}
+              </div>
             </div>
           </div>
         </section>
@@ -129,10 +250,10 @@ const Transactions = ({ onMenuClick }) => {
                 <input type="text" placeholder="Search" />
               </div>
               <div className="tx-tabs">
-                <button type="button" className={activeTab === 'Personal' ? 'active' : ''} onClick={() => setActiveTab('Personal')}>Personal</button>
-                <button type="button" className={activeTab === 'Business suite' ? 'active' : ''} onClick={() => setActiveTab('Business suite')}>Business suite</button>
+                <button type="button" className={activeTab === 'Personal' ? 'active' : ''} onClick={() => { setActiveTab('Personal'); setListData((p) => ({ ...p, page: 1 })); setListLoading(true); }}>Personal</button>
+                <button type="button" className={activeTab === 'Business suite' ? 'active' : ''} onClick={() => { setActiveTab('Business suite'); setListData((p) => ({ ...p, page: 1 })); setListLoading(true); }}>Business suite</button>
               </div>
-              <select className="tx-filter-select" value={filterAll} onChange={(e) => setFilterAll(e.target.value)}>
+              <select className="tx-filter-select" value={filterAll} onChange={(e) => { setFilterAll(e.target.value); setListData((p) => ({ ...p, page: 1 })); setListLoading(true); }}>
                 <option>All</option>
                 <option>Successful</option>
                 <option>Pending</option>
@@ -163,20 +284,29 @@ const Transactions = ({ onMenuClick }) => {
                 </tr>
               </thead>
               <tbody>
-                {transactions.map((row, index) => (
-                  <tr key={index} onClick={() => setSelectedTransaction(row)}>
+                {listError && (
+                  <tr><td colSpan={8} className="tx-list-error">{listError}</td></tr>
+                )}
+                {!listError && listLoading && items.length === 0 && (
+                  <tr><td colSpan={8} className="tx-list-loading">Loading…</td></tr>
+                )}
+                {!listError && !listLoading && items.length === 0 && (
+                  <tr><td colSpan={8} className="tx-list-empty">No transactions found</td></tr>
+                )}
+                {!listError && items.map((row) => (
+                  <tr key={row.id} onClick={() => setSelectedTransaction(row)}>
                     <td>
                       <div className="tx-id-cell">
                         <span className="tx-radio" />
-                        <span>{row.id}</span>
+                        <span>{row.transactionId}</span>
                       </div>
                     </td>
-                    <td>{row.type}</td>
-                    <td>{row.userId}</td>
-                    <td>{row.amount}</td>
-                    <td><span className={`tx-status tx-status--${row.status.toLowerCase()}`}>{row.status}</span></td>
-                    <td>{row.currency}</td>
-                    <td>{row.date}</td>
+                    <td>{row.typeLabel ?? row.type ?? '—'}</td>
+                    <td>{row.userName ?? row.userId ?? '—'}</td>
+                    <td>{formatAmount(row.amountUsd)}</td>
+                    <td><span className={`tx-status tx-status--${getStatusClass(row.status)}`}>{row.statusLabel ?? row.status ?? '—'}</span></td>
+                    <td>{row.currency ?? '—'}</td>
+                    <td>{row.createdAtAgo ?? (row.createdAt ? new Date(row.createdAt).toLocaleString() : '—')}</td>
                     <td onClick={(e) => e.stopPropagation()}>
                       <button type="button" className="tx-view-btn" aria-label="View" onClick={() => setSelectedTransaction(row)}>
                         <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
@@ -190,15 +320,46 @@ const Transactions = ({ onMenuClick }) => {
             </table>
           </div>
           <div className="tx-pagination">
-            <button type="button" className="tx-page-btn" disabled aria-label="Previous">
+            <button
+              type="button"
+              className="tx-page-btn"
+              disabled={listLoading || page <= 1}
+              onClick={() => setPage(page - 1)}
+              aria-label="Previous"
+            >
               <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
-            <button type="button" className="tx-page-num active">1</button>
-            <button type="button" className="tx-page-num">2</button>
-            <span className="tx-page-ellipsis">...</span>
-            <button type="button" className="tx-page-num">9</button>
-            <button type="button" className="tx-page-num">10</button>
-            <button type="button" className="tx-page-btn" aria-label="Next">
+            {Array.from({ length: Math.min(5, Math.max(1, totalPages)) }, (_, i) => {
+              let p;
+              if (totalPages <= 5) p = i + 1;
+              else if (page <= 3) p = i + 1;
+              else if (page >= totalPages - 2) p = totalPages - 4 + i;
+              else p = page - 2 + i;
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  className={`tx-page-num ${p === page ? 'active' : ''}`}
+                  disabled={listLoading}
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </button>
+              );
+            })}
+            {totalPages > 5 && page < totalPages - 2 && <span className="tx-page-ellipsis">…</span>}
+            {totalPages > 5 && page < totalPages - 2 && (
+              <button type="button" className="tx-page-num" disabled={listLoading} onClick={() => setPage(totalPages)}>
+                {totalPages}
+              </button>
+            )}
+            <button
+              type="button"
+              className="tx-page-btn"
+              disabled={listLoading || page >= totalPages}
+              onClick={() => setPage(page + 1)}
+              aria-label="Next"
+            >
               <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
           </div>
@@ -206,27 +367,51 @@ const Transactions = ({ onMenuClick }) => {
 
         {/* Transaction Summary Modal */}
         {selectedTransaction && (
-          <div className="tx-modal-overlay" onClick={() => setSelectedTransaction(null)}>
+          <div className="tx-modal-overlay" onClick={() => { setSelectedTransaction(null); setTransactionDetail(null); setDetailError(null); }}>
             <div className="tx-modal" onClick={(e) => e.stopPropagation()}>
               <div className="tx-modal-header">
                 <h2 className="tx-modal-title">Transaction Summary</h2>
-                <button type="button" className="tx-modal-close" onClick={() => setSelectedTransaction(null)} aria-label="Close">
+                <button type="button" className="tx-modal-close" onClick={() => { setSelectedTransaction(null); setTransactionDetail(null); setDetailError(null); }} aria-label="Close">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
                 </button>
               </div>
               <div className="tx-modal-body">
-                <div className="tx-modal-row"><span className="tx-modal-label">Transaction ID</span><span className="tx-modal-value">{selectedTransaction.id}</span></div>
-                <div className="tx-modal-row"><span className="tx-modal-label">Type</span><span className="tx-modal-value">{selectedTransaction.type}</span></div>
-                <div className="tx-modal-row"><span className="tx-modal-label">Sender</span><span className="tx-modal-value">{selectedTransaction.sender}</span></div>
-                <div className="tx-modal-row"><span className="tx-modal-label">Recipient</span><span className="tx-modal-value">{selectedTransaction.recipient}</span></div>
-                <div className="tx-modal-row"><span className="tx-modal-label">Amount</span><span className="tx-modal-value">{selectedTransaction.amount}</span></div>
-                <div className="tx-modal-row"><span className="tx-modal-label">Currency</span><span className="tx-modal-value">{selectedTransaction.currency}</span></div>
-                <div className="tx-modal-row"><span className="tx-modal-label">Status</span><span className="tx-modal-value">{selectedTransaction.status}</span></div>
-                <div className="tx-modal-row"><span className="tx-modal-label">Date</span><span className="tx-modal-value">{selectedTransaction.dateFull || selectedTransaction.date}</span></div>
+                {detailLoading && <div className="tx-modal-loading">Loading transaction details…</div>}
+                {detailError && <div className="tx-modal-error">{detailError}</div>}
+                {!detailLoading && !detailError && transactionDetail && (
+                  <>
+                    <div className="tx-modal-row"><span className="tx-modal-label">Transaction ID</span><span className="tx-modal-value">{transactionDetail.transactionId}</span></div>
+                    <div className="tx-modal-row"><span className="tx-modal-label">Type</span><span className="tx-modal-value">{transactionDetail.typeLabel ?? transactionDetail.type}</span></div>
+                    <div className="tx-modal-row"><span className="tx-modal-label">User</span><span className="tx-modal-value">{transactionDetail.userName ?? transactionDetail.userId}</span></div>
+                    <div className="tx-modal-row"><span className="tx-modal-label">Email</span><span className="tx-modal-value">{transactionDetail.userEmail ?? '—'}</span></div>
+                    <div className="tx-modal-row"><span className="tx-modal-label">Amount (USD)</span><span className="tx-modal-value">{formatAmount(transactionDetail.amountUsd)}</span></div>
+                    <div className="tx-modal-row"><span className="tx-modal-label">Amount (XRP)</span><span className="tx-modal-value">{transactionDetail.amountXrp != null ? Number(transactionDetail.amountXrp).toLocaleString() : '—'}</span></div>
+                    <div className="tx-modal-row"><span className="tx-modal-label">Currency</span><span className="tx-modal-value">{transactionDetail.currency ?? '—'}</span></div>
+                    <div className="tx-modal-row"><span className="tx-modal-label">Status</span><span className="tx-modal-value">{transactionDetail.statusLabel ?? transactionDetail.status}</span></div>
+                    <div className="tx-modal-row"><span className="tx-modal-label">Description</span><span className="tx-modal-value">{transactionDetail.description ?? '—'}</span></div>
+                    <div className="tx-modal-row"><span className="tx-modal-label">Date</span><span className="tx-modal-value">{transactionDetail.createdAtAgo ?? (transactionDetail.createdAt ? new Date(transactionDetail.createdAt).toLocaleString() : '—')}</span></div>
+                    {transactionDetail.xrplTxHash != null && (
+                      <div className="tx-modal-row"><span className="tx-modal-label">XRPL Tx Hash</span><span className="tx-modal-value tx-modal-value--mono">{transactionDetail.xrplTxHash}</span></div>
+                    )}
+                    {transactionDetail.escrowId != null && (
+                      <div className="tx-modal-row"><span className="tx-modal-label">Escrow ID</span><span className="tx-modal-value">{transactionDetail.escrowId}</span></div>
+                    )}
+                  </>
+                )}
+                {!detailLoading && !detailError && !transactionDetail && (
+                  <>
+                    <div className="tx-modal-row"><span className="tx-modal-label">Transaction ID</span><span className="tx-modal-value">{selectedTransaction.transactionId ?? selectedTransaction.id}</span></div>
+                    <div className="tx-modal-row"><span className="tx-modal-label">Type</span><span className="tx-modal-value">{selectedTransaction.typeLabel ?? selectedTransaction.type}</span></div>
+                    <div className="tx-modal-row"><span className="tx-modal-label">User</span><span className="tx-modal-value">{selectedTransaction.userName ?? selectedTransaction.userId ?? '—'}</span></div>
+                    <div className="tx-modal-row"><span className="tx-modal-label">Amount</span><span className="tx-modal-value">{selectedTransaction.amountUsd != null ? formatAmount(selectedTransaction.amountUsd) : '—'}</span></div>
+                    <div className="tx-modal-row"><span className="tx-modal-label">Currency</span><span className="tx-modal-value">{selectedTransaction.currency ?? '—'}</span></div>
+                    <div className="tx-modal-row"><span className="tx-modal-label">Status</span><span className="tx-modal-value">{selectedTransaction.statusLabel ?? selectedTransaction.status}</span></div>
+                    <div className="tx-modal-row"><span className="tx-modal-label">Date</span><span className="tx-modal-value">{selectedTransaction.createdAtAgo ?? (selectedTransaction.createdAt ? new Date(selectedTransaction.createdAt).toLocaleString() : '—')}</span></div>
+                  </>
+                )}
               </div>
-              <button type="button" className="tx-modal-transfer-btn">Transfer</button>
               <div className="tx-modal-note">
                 <span className="tx-modal-note-icon">i</span>
                 <span>Recipient will receive at least 24,567 USDT ($24,567) or the transaction will be refunded</span>

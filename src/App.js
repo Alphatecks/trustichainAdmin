@@ -4,8 +4,11 @@ import Dashboard from './components/dashboard';
 import UserManagement from './components/users';
 import UserDetail from './components/users/UserDetail';
 import EscrowManagement from './components/escrow';
+import EscrowDetail from './components/escrow/EscrowDetail';
 import Transactions from './components/transactions';
 import DisputeResolution from './components/dispute';
+import BusinessManagement from './components/businessManagement';
+import CardManagement from './components/cardManagement/CardManagement';
 import Settings from './components/settings';
 import { authService } from './services/authService';
 import './App.css';
@@ -14,6 +17,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedEscrowId, setSelectedEscrowId] = useState(null);
 
   useEffect(() => {
     // Check if user is already logged in (has token in localStorage)
@@ -27,8 +31,8 @@ function App() {
     setCurrentPage('dashboard');
   };
 
-  const handleLogout = () => {
-    authService.logout();
+  const handleLogout = async () => {
+    await authService.logout();
     setIsAuthenticated(false);
     setCurrentPage('dashboard');
   };
@@ -42,11 +46,18 @@ function App() {
     } else if (menu === 'escrow') {
       setCurrentPage('escrow');
       setSelectedUser(null);
+      setSelectedEscrowId(null);
     } else if (menu === 'transactions') {
       setCurrentPage('transactions');
       setSelectedUser(null);
     } else if (menu === 'dispute') {
       setCurrentPage('dispute');
+      setSelectedUser(null);
+    } else if (menu === 'businessManagement') {
+      setCurrentPage('businessManagement');
+      setSelectedUser(null);
+    } else if (menu === 'cardManagement') {
+      setCurrentPage('cardManagement');
       setSelectedUser(null);
     } else if (menu === 'settings') {
       setCurrentPage('settings');
@@ -64,6 +75,16 @@ function App() {
     setSelectedUser(null);
   };
 
+  const handleEscrowClick = (escrowId) => {
+    setSelectedEscrowId(escrowId);
+    setCurrentPage('escrowDetail');
+  };
+
+  const handleBackToEscrow = () => {
+    setCurrentPage('escrow');
+    setSelectedEscrowId(null);
+  };
+
   if (!isAuthenticated) {
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
@@ -72,12 +93,16 @@ function App() {
     return <UserDetail user={selectedUser} onBack={handleBackToUsers} onMenuClick={handleMenuClick} />;
   }
 
+  if (currentPage === 'escrowDetail') {
+    return <EscrowDetail escrowId={selectedEscrowId} onBack={handleBackToEscrow} onMenuClick={handleMenuClick} />;
+  }
+
   if (currentPage === 'users') {
     return <UserManagement onLogout={handleLogout} onMenuClick={handleMenuClick} onUserClick={handleUserClick} />;
   }
 
   if (currentPage === 'escrow') {
-    return <EscrowManagement onLogout={handleLogout} onMenuClick={handleMenuClick} />;
+    return <EscrowManagement onLogout={handleLogout} onMenuClick={handleMenuClick} onEscrowClick={handleEscrowClick} />;
   }
 
   if (currentPage === 'transactions') {
@@ -88,8 +113,16 @@ function App() {
     return <DisputeResolution onMenuClick={handleMenuClick} />;
   }
 
+  if (currentPage === 'businessManagement') {
+    return <BusinessManagement onMenuClick={handleMenuClick} />;
+  }
+
+  if (currentPage === 'cardManagement') {
+    return <CardManagement onMenuClick={handleMenuClick} />;
+  }
+
   if (currentPage === 'settings') {
-    return <Settings onMenuClick={handleMenuClick} />;
+    return <Settings onLogout={handleLogout} onMenuClick={handleMenuClick} />;
   }
 
   return <Dashboard onLogout={handleLogout} onMenuClick={handleMenuClick} />;

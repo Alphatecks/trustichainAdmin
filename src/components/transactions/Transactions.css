@@ -153,6 +153,12 @@
 }
 
 /* ----- Overview cards ----- */
+.tx-overview-error {
+  color: #c53030;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
 .tx-overview .tx-section-title {
   margin-bottom: 12px;
 }
@@ -359,6 +365,17 @@
   border-bottom: 1px solid #e6e6e6;
 }
 
+.tx-list-error,
+.tx-list-loading,
+.tx-list-empty {
+  text-align: center;
+  padding: 24px 16px !important;
+  color: #666;
+}
+.tx-list-error {
+  color: #c53030;
+}
+
 .tx-table td {
   padding: 14px 16px;
   border-bottom: 1px solid #f0f0f0;
@@ -548,6 +565,16 @@
   margin-bottom: 24px;
 }
 
+.tx-modal-loading {
+  color: #666;
+  padding: 12px 0;
+}
+
+.tx-modal-error {
+  color: #c53030;
+  padding: 12px 0;
+}
+
 .tx-modal-row {
   display: flex;
   align-items: center;
@@ -568,22 +595,10 @@
   text-align: right;
 }
 
-.tx-modal-transfer-btn {
-  width: 100%;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 10px;
-  background: #0671FF;
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 400;
-  font-family: inherit;
-  cursor: pointer;
-  margin-bottom: 16px;
-}
-
-.tx-modal-transfer-btn:hover {
-  background: #0560e6;
+.tx-modal-value.tx-modal-value--mono {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  word-break: break-all;
 }
 
 .tx-modal-note {

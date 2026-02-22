@@ -1,0 +1,137 @@
+/* Business Management page – bm- scoped */
+
+.bm-page {
+  flex: 1;
+  padding: 32px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: #f7f9fb;
+  font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.bm-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.bm-section {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+.bm-section .dr-section-title {
+  margin-bottom: 16px;
+}
+
+.bm-placeholder {
+  color: #666;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.bm-placeholder p {
+  margin: 0;
+}
+
+.bm-icon-suppliers {
+  background: #059669;
+}
+
+.bm-icon-api {
+  background: #7c3aed;
+}
+
+.bm-activity-id {
+  font-size: 0.9rem;
+  color: #444;
+}
+
+/* ----- Detail view ----- */
+.bm-detail-loading {
+  padding: 24px;
+  color: #666;
+}
+
+.bm-detail-error {
+  padding: 24px;
+  color: #c0392b;
+}
+
+.bm-breadcrumb-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.bm-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border: none;
+  background: none;
+  color: #0671FF;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.bm-back-link:hover {
+  text-decoration: underline;
+}
+
+.bm-breadcrumb-sep {
+  color: #888;
+  font-size: 1rem;
+}
+
+.bm-detail-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px 28px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  max-width: 560px;
+}
+
+.bm-detail-title {
+  margin: 0 0 20px 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #222;
+}
+
+.bm-detail-list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bm-detail-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.bm-detail-row dt {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #666;
+  min-width: 100px;
+}
+
+.bm-detail-row dd {
+  margin: 0;
+  font-size: 1rem;
+  color: #222;
+  display: flex;
+  align-items: center;
+}

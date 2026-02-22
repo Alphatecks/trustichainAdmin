@@ -41,7 +41,16 @@ const Layout = ({ children, activeMenu, onMenuClick }) => {
               onClick={() => onMenuClick && onMenuClick('dispute')}
             >
               <span className="icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#0671FF" strokeWidth="2"/><path d="M10 6V10L13 13" stroke="#0671FF" strokeWidth="2"/></svg></span> Dispute Resolution</li>
-            <li><span className="icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="7" width="14" height="10" rx="2" stroke="#0671FF" strokeWidth="2"/><rect x="7" y="3" width="6" height="4" rx="2" stroke="#0671FF" strokeWidth="2"/></svg></span> Business Management</li>
+            <li
+              className={activeMenu === 'businessManagement' ? 'active' : ''}
+              onClick={() => onMenuClick && onMenuClick('businessManagement')}
+            >
+              <span className="icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="7" width="14" height="10" rx="2" stroke="#0671FF" strokeWidth="2"/><rect x="7" y="3" width="6" height="4" rx="2" stroke="#0671FF" strokeWidth="2"/></svg></span> Business Management</li>
+            <li
+              className={activeMenu === 'cardManagement' ? 'active' : ''}
+              onClick={() => onMenuClick && onMenuClick('cardManagement')}
+            >
+              <span className="icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="5" width="16" height="11" rx="2" stroke="#0671FF" strokeWidth="2"/><path d="M2 9h16" stroke="#0671FF" strokeWidth="2"/><rect x="5" y="12" width="4" height="2" rx="0.5" fill="#0671FF" opacity="0.5"/></svg></span> Card Management</li>
             <li
               className={activeMenu === 'settings' ? 'active' : ''}
               onClick={() => onMenuClick && onMenuClick('settings')}

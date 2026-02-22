@@ -288,6 +288,17 @@
   color: #333;
 }
 
+.set-btn--logout {
+  background: transparent;
+  color: #c53030;
+  border: 1px solid #c53030;
+}
+
+.set-btn--logout:hover {
+  background: #c53030;
+  color: #fff;
+}
+
 /* Toggles */
 .set-toggles {
   display: flex;

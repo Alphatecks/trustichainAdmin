@@ -65,9 +65,23 @@ export const authService = {
   },
 
   /**
-   * Clear authentication data
+   * Admin logout – invalidate session on server then clear local auth data
    */
-  logout() {
+  async logout() {
+    const token = this.getToken();
+    if (token) {
+      try {
+        await fetch(`${API_BASE_URL}/admin/logout`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+      } catch (err) {
+        // Proceed to clear local state even if request fails (e.g. network)
+      }
+    }
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminData');
   },
