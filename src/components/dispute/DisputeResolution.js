@@ -138,6 +138,9 @@ const DisputeResolution = ({ onMenuClick }) => {
     return '';
   };
 
+  const openDispute = (row) => setSelectedDispute({ ...row, party1: row.party1Name, party2: row.party2Name });
+  const openDisputeFromAlert = (alert) => setSelectedDispute({ caseId: alert.caseId, id: alert.disputeId });
+
   if (selectedDispute) {
     return (
       <Layout activeMenu="dispute" onMenuClick={onMenuClick}>
@@ -179,63 +182,93 @@ const DisputeResolution = ({ onMenuClick }) => {
           </div>
         </header>
 
-        <div className="dr-content">
-          {/* Overview: 4 cards in a row */}
-          <section className="dr-overview-section">
-            {metricsError && <div className="dr-metrics-error">{metricsError}</div>}
-            <div className="dr-section-title">
-              <span className="dr-section-bar" />
-              <span>Overview</span>
-            </div>
-            <div className="dr-overview-grid">
-              <div className="dr-overview-card">
-                <div className="dr-overview-card-head">
-                  <div className="dr-overview-icon dr-overview-icon--people">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-                  </div>
-                  {metrics && formatTrend(metrics.totalDisputesChangePercent)}
-                </div>
-                <div className="dr-overview-label">Total Dispute</div>
-                <div className="dr-overview-value">{metricsLoading ? '—' : metrics ? new Intl.NumberFormat('en-US').format(metrics.totalDisputes) : '—'}</div>
+        <div className="dr-content dr-content--two-col">
+          {/* Left: Overview + Dispute Alert Level */}
+          <div className="dr-left">
+            <section className="dr-overview-section">
+              {metricsError && <div className="dr-metrics-error">{metricsError}</div>}
+              <div className="dr-section-title">
+                <span className="dr-section-bar" />
+                <span>Overview</span>
               </div>
-              <div className="dr-overview-card">
-                <div className="dr-overview-card-head">
-                  <div className="dr-overview-icon dr-overview-icon--active">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M23 7l-7 5 7 5V7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><rect x="1" y="5" width="15" height="14" rx="2" stroke="currentColor" strokeWidth="2"/></svg>
+              <div className="dr-overview-grid">
+                <div className="dr-overview-card">
+                  <div className="dr-overview-card-head">
+                    <div className="dr-overview-icon dr-overview-icon--people">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                    </div>
+                    {metrics && formatTrend(metrics.totalDisputesChangePercent)}
                   </div>
-                  {metrics && formatTrend(metrics.activeDisputesChangePercent)}
+                  <div className="dr-overview-label">Total Dispute</div>
+                  <div className="dr-overview-value">{metricsLoading ? '—' : metrics ? new Intl.NumberFormat('en-US').format(metrics.totalDisputes) : '—'}</div>
                 </div>
-                <div className="dr-overview-label">Active Dispute</div>
-                <div className="dr-overview-value">{metricsLoading ? '—' : metrics ? new Intl.NumberFormat('en-US').format(metrics.activeDisputes) : '—'}</div>
-              </div>
-              <div className="dr-overview-card">
-                <div className="dr-overview-card-head">
-                  <div className="dr-overview-icon dr-overview-icon--resolved">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <div className="dr-overview-card">
+                  <div className="dr-overview-card-head">
+                    <div className="dr-overview-icon dr-overview-icon--active">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M23 7l-7 5 7 5V7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><rect x="1" y="5" width="15" height="14" rx="2" stroke="currentColor" strokeWidth="2"/></svg>
+                    </div>
+                    {metrics && formatTrend(metrics.activeDisputesChangePercent)}
                   </div>
-                  {metrics && formatTrend(metrics.resolvedDisputesChangePercent)}
+                  <div className="dr-overview-label">Active Dispute</div>
+                  <div className="dr-overview-value">{metricsLoading ? '—' : metrics ? new Intl.NumberFormat('en-US').format(metrics.activeDisputes) : '—'}</div>
                 </div>
-                <div className="dr-overview-label">Resolved Dispute</div>
-                <div className="dr-overview-value">{metricsLoading ? '—' : metrics ? new Intl.NumberFormat('en-US').format(metrics.resolvedDisputes) : '—'}</div>
-              </div>
-              <div className="dr-overview-card">
-                <div className="dr-overview-card-head">
-                  <div className="dr-overview-icon dr-overview-icon--time">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                <div className="dr-overview-card">
+                  <div className="dr-overview-card-head">
+                    <div className="dr-overview-icon dr-overview-icon--resolved">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </div>
+                    {metrics && formatTrend(metrics.resolvedDisputesChangePercent)}
                   </div>
+                  <div className="dr-overview-label">Resolved Dispute</div>
+                  <div className="dr-overview-value">{metricsLoading ? '—' : metrics ? new Intl.NumberFormat('en-US').format(metrics.resolvedDisputes) : '—'}</div>
                 </div>
-                <div className="dr-overview-label">Average Res Time</div>
-                <div className="dr-overview-value">{metricsLoading ? '—' : (metrics?.averageResolutionTimeLabel ?? (metrics?.averageResolutionTimeHours != null ? `${metrics.averageResolutionTimeHours}hr` : '—'))}</div>
+                <div className="dr-overview-card">
+                  <div className="dr-overview-card-head">
+                    <div className="dr-overview-icon dr-overview-icon--time">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                    </div>
+                  </div>
+                  <div className="dr-overview-label">Average Res Time</div>
+                  <div className="dr-overview-value">{metricsLoading ? '—' : (metrics?.averageResolutionTimeLabel ?? (metrics?.averageResolutionTimeHours != null ? `${metrics.averageResolutionTimeHours}hr` : '—'))}</div>
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
 
-          {/* Business Tools: table */}
+            <section className="dr-alert-card">
+              {alertsError && <div className="dr-alerts-error">{alertsError}</div>}
+              <div className="dr-section-title">
+                <span className="dr-section-bar" />
+                <span>Dispute Alert Level</span>
+              </div>
+              <ul className="dr-alert-list">
+                {alertsLoading && alertsList.length === 0 && (
+                  <li className="dr-alert-item dr-alert-item--loading">Loading alerts…</li>
+                )}
+                {!alertsLoading && alertsList.length === 0 && !alertsError && (
+                  <li className="dr-alert-item dr-alert-item--empty">No alerts</li>
+                )}
+                {alertsList.slice(0, 5).map((alert) => (
+                  <li key={alert.id} className="dr-alert-item">
+                    <div className="dr-alert-content">
+                      <div className="dr-alert-title">{alert.title}</div>
+                      <div className="dr-alert-desc">{alert.description}</div>
+                    </div>
+                    <div className="dr-alert-right">
+                      <span className="dr-alert-time">{alert.createdAtAgo ?? (alert.createdAt ? new Date(alert.createdAt).toLocaleString() : '—')}</span>
+                      <button type="button" className="dr-alert-btn" onClick={() => openDisputeFromAlert(alert)}>View</button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </div>
+
+          {/* Right: Dispute Overview table */}
           <section className="dr-table-card">
             <div className="dr-table-header">
               <div className="dr-section-title">
                 <span className="dr-section-bar" />
-                <span>Business Tools</span>
+                <span>Dispute Overview</span>
               </div>
               <div className="dr-toolbar">
                 <div className="dr-table-search">
@@ -275,30 +308,31 @@ const DisputeResolution = ({ onMenuClick }) => {
               <table className="dr-table">
                 <thead>
                   <tr>
-                    <th>Activity</th>
-                    <th>Description</th>
-                    <th>Timestamp</th>
+                    <th>Dispute ID</th>
+                    <th>Party 1</th>
+                    <th>Party 2</th>
+                    <th>Date created</th>
                     <th>Status</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   {listError && (
-                    <tr><td colSpan={5} className="dr-list-error">{listError}</td></tr>
+                    <tr><td colSpan={6} className="dr-list-error">{listError}</td></tr>
                   )}
                   {!listError && listLoading && items.length === 0 && (
-                    <tr><td colSpan={5} className="dr-list-loading">Loading…</td></tr>
+                    <tr><td colSpan={6} className="dr-list-loading">Loading…</td></tr>
                   )}
                   {!listError && !listLoading && items.length === 0 && (
-                    <tr><td colSpan={5} className="dr-list-empty">No disputes found</td></tr>
+                    <tr><td colSpan={6} className="dr-list-empty">No disputes found</td></tr>
                   )}
                   {!listError && items.map((row) => (
                     <tr
                       key={row.id}
-                      onClick={() => setSelectedDispute({ ...row, party1: row.party1Name, party2: row.party2Name })}
+                      onClick={() => openDispute(row)}
                       role="button"
                       tabIndex={0}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedDispute({ ...row, party1: row.party1Name, party2: row.party2Name }); } }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDispute(row); } }}
                       className="dr-table-row-clickable"
                     >
                       <td>
@@ -307,12 +341,8 @@ const DisputeResolution = ({ onMenuClick }) => {
                           <span>{row.caseId}</span>
                         </div>
                       </td>
-                      <td>
-                        <div className="dr-description-cell">
-                          <span className="dr-desc-name">{row.party1Name ?? '—'}</span>
-                          <span className="dr-desc-address">{row.party2Name ?? '—'}</span>
-                        </div>
-                      </td>
+                      <td>{row.party1Name ?? '—'}</td>
+                      <td>{row.party2Name ?? '—'}</td>
                       <td className="dr-timestamp-cell">{formatTableTimestamp(row.openedAt)}</td>
                       <td><span className={`dr-status dr-status--${getStatusClass(row.status)}`}>{row.statusLabel ?? row.status ?? '—'}</span></td>
                       <td>
@@ -320,7 +350,7 @@ const DisputeResolution = ({ onMenuClick }) => {
                           type="button"
                           className="dr-view-btn"
                           aria-label="View"
-                          onClick={(e) => { e.stopPropagation(); setSelectedDispute({ ...row, party1: row.party1Name, party2: row.party2Name }); }}
+                          onClick={(e) => { e.stopPropagation(); openDispute(row); }}
                         >
                           <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
                             <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -333,84 +363,26 @@ const DisputeResolution = ({ onMenuClick }) => {
               </table>
             </div>
             <div className="dr-pagination">
-              <button
-                type="button"
-                className="dr-page-btn"
-                disabled={listLoading || page <= 1}
-                onClick={() => setPage(page - 1)}
-                aria-label="Previous"
-              >
+              <button type="button" className="dr-page-btn" disabled={listLoading || page <= 1} onClick={() => setPage(page - 1)} aria-label="Previous">
                 <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </button>
-              {Array.from({ length: Math.min(5, Math.max(1, totalPages)) }, (_, i) => {
-                let p;
-                if (totalPages <= 5) p = i + 1;
-                else if (page <= 3) p = i + 1;
-                else if (page >= totalPages - 2) p = totalPages - 4 + i;
-                else p = page - 2 + i;
-                return (
-                  <button
-                    key={p}
-                    type="button"
-                    className={`dr-page-num ${p === page ? 'active' : ''}`}
-                    disabled={listLoading}
-                    onClick={() => setPage(p)}
-                  >
-                    {p}
-                  </button>
-                );
-              })}
-              {totalPages > 5 && page < totalPages - 2 && <span className="dr-page-ellipsis">…</span>}
-              {totalPages > 5 && page < totalPages - 2 && (
-                <button type="button" className="dr-page-num" disabled={listLoading} onClick={() => setPage(totalPages)}>
-                  {totalPages}
-                </button>
+              {totalPages <= 5 ? (
+                Array.from({ length: Math.max(1, totalPages) }, (_, i) => i + 1).map((p) => (
+                  <button key={p} type="button" className={`dr-page-num ${p === page ? 'active' : ''}`} disabled={listLoading} onClick={() => setPage(p)}>{p}</button>
+                ))
+              ) : (
+                <>
+                  <button type="button" className={`dr-page-num ${page === 1 ? 'active' : ''}`} disabled={listLoading} onClick={() => setPage(1)}>1</button>
+                  <button type="button" className={`dr-page-num ${page === 2 ? 'active' : ''}`} disabled={listLoading} onClick={() => setPage(2)}>2</button>
+                  <span className="dr-page-ellipsis">…</span>
+                  <button type="button" className={`dr-page-num ${page === totalPages - 1 ? 'active' : ''}`} disabled={listLoading} onClick={() => setPage(totalPages - 1)}>{totalPages - 1}</button>
+                  <button type="button" className={`dr-page-num ${page === totalPages ? 'active' : ''}`} disabled={listLoading} onClick={() => setPage(totalPages)}>{totalPages}</button>
+                </>
               )}
-              <button
-                type="button"
-                className="dr-page-btn"
-                disabled={listLoading || page >= totalPages}
-                onClick={() => setPage(page + 1)}
-                aria-label="Next"
-              >
+              <button type="button" className="dr-page-btn" disabled={listLoading || page >= totalPages} onClick={() => setPage(page + 1)} aria-label="Next">
                 <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </button>
             </div>
-          </section>
-
-          {/* Dispute Alerts (compact, below table) */}
-          <section className="dr-alert-card dr-alert-card--compact">
-            {alertsError && <div className="dr-alerts-error">{alertsError}</div>}
-            <div className="dr-section-title">
-              <span className="dr-section-bar" />
-              <span>Dispute Alert Level</span>
-            </div>
-            <ul className="dr-alert-list">
-              {alertsLoading && alertsList.length === 0 && (
-                <li className="dr-alert-item dr-alert-item--loading">Loading alerts…</li>
-              )}
-              {!alertsLoading && alertsList.length === 0 && !alertsError && (
-                <li className="dr-alert-item dr-alert-item--empty">No alerts</li>
-              )}
-              {alertsList.slice(0, 5).map((alert) => (
-                <li key={alert.id} className="dr-alert-item">
-                  <div className="dr-alert-content">
-                    <div className="dr-alert-title">{alert.title}</div>
-                    <div className="dr-alert-desc">{alert.description}</div>
-                  </div>
-                  <div className="dr-alert-right">
-                    <span className="dr-alert-time">{alert.createdAtAgo ?? (alert.createdAt ? new Date(alert.createdAt).toLocaleString() : '—')}</span>
-                    <button
-                      type="button"
-                      className="dr-alert-btn"
-                      onClick={() => setSelectedDispute({ caseId: alert.caseId, id: alert.disputeId })}
-                    >
-                      View
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
           </section>
         </div>
       </div>
