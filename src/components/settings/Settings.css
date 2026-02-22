@@ -102,6 +102,11 @@
   flex-shrink: 0;
 }
 
+.set-avatar-img {
+  object-fit: cover;
+  background: #e8e8e8;
+}
+
 .set-profile-info {
   display: flex;
   flex-direction: column;
@@ -189,6 +194,42 @@
   margin-bottom: 20px;
 }
 
+.set-form-grid--push {
+  margin-bottom: 16px;
+}
+
+.set-field--full {
+  grid-column: 1 / -1;
+}
+
+.set-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.set-push-desc {
+  font-size: 0.9rem;
+  color: #666;
+  margin: -8px 0 16px 0;
+}
+
+.set-push-message {
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+.set-push-message--error {
+  color: #c53030;
+}
+
+.set-push-message--success {
+  color: #047857;
+}
+
+.set-btn--push {
+  margin-top: 0;
+}
+
 .set-field {
   display: flex;
   flex-direction: column;
@@ -245,9 +286,40 @@
   font-size: 1.25rem;
 }
 
+.set-avatar-preview-img {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.set-profile-error {
+  color: #c53030;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+.set-profile-success {
+  color: #047857;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+.set-btn--profile-save {
+  margin-top: 8px;
+}
+
 .set-avatar-actions {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 12px;
+}
+
+.set-photo-url-input {
+  flex: 1;
+  min-width: 180px;
 }
 
 /* Buttons */

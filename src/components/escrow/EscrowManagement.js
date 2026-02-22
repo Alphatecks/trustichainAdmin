@@ -87,6 +87,12 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
       .finally(() => setFeesLoading(false));
   };
 
+  const loadStats = () => {
+    fetchEscrowManagementStats()
+      .then((res) => { if (res?.success && res?.data) setStats(res.data); })
+      .catch(() => {});
+  };
+
   const setPage = (page) => {
     if (page < 1 || page > listData.totalPages) return;
     setListLoading(true);
@@ -248,19 +254,18 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
               <div className="escrow-fees-summary">
                 <span className="escrow-fees-label">Available to withdraw</span>
                 <span className="escrow-fees-value">
-                  {feesLoading ? '—' : feesSummary != null
-                    ? (feesSummary.totalFeesUsd != null
-                      ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(feesSummary.totalFeesUsd)
-                      : feesSummary.availableBalance != null
-                        ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(feesSummary.availableBalance)
-                        : '—')
-                    : '—'}
+                  {statsLoading ? '—' : stats != null && stats.escrowFeesBalanceXrp != null
+                    ? `${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(stats.escrowFeesBalanceXrp)} XRP`
+                    : feesSummary != null
+                      ? (feesSummary.totalFeesUsd != null
+                        ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(feesSummary.totalFeesUsd)
+                        : feesSummary.availableBalance != null
+                          ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(feesSummary.availableBalance)
+                          : feesSummary.totalFeesXrp != null
+                            ? `${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(feesSummary.totalFeesXrp)} XRP`
+                            : '—')
+                      : '—'}
                 </span>
-                {feesSummary?.totalFeesXrp != null && (
-                  <span className="escrow-fees-value escrow-fees-value--xrp">
-                    {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(feesSummary.totalFeesXrp)} XRP
-                  </span>
-                )}
               </div>
               <button
                 type="button"
@@ -425,23 +430,23 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
               </button>
             </div>
             <div className="escrow-withdraw-body">
-              <p className="escrow-withdraw-note">Withdraw collected escrow fees to a destination. Leave empty to use default destination or withdraw full balance.</p>
-              <label className="escrow-withdraw-label">Destination address (optional)</label>
+              <p className="escrow-withdraw-note">Withdraw collected escrow fees to an XRPL wallet address. Amount is in USD.</p>
+              <label className="escrow-withdraw-label">XRPL destination address</label>
               <input
                 type="text"
                 className="escrow-withdraw-input"
                 value={withdrawDestination}
                 onChange={(e) => setWithdrawDestination(e.target.value)}
-                placeholder="Wallet or account address"
+                placeholder="rYourXRPLAddress..."
               />
-              <label className="escrow-withdraw-label">Amount USD (optional)</label>
+              <label className="escrow-withdraw-label">Amount (USD)</label>
               <input
                 type="text"
                 inputMode="decimal"
                 className="escrow-withdraw-input"
                 value={withdrawAmount}
                 onChange={(e) => setWithdrawAmount(e.target.value)}
-                placeholder="Leave empty to withdraw all"
+                placeholder="e.g. 250"
               />
               {withdrawError && <div className="escrow-withdraw-error">{withdrawError}</div>}
               <div className="escrow-withdraw-actions">
@@ -449,16 +454,25 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
                 <button
                   type="button"
                   className="escrow-withdraw-submit"
-                  disabled={withdrawLoading}
+                  disabled={withdrawLoading || !withdrawDestination.trim() || !withdrawAmount.trim() || Number(withdrawAmount) <= 0}
                   onClick={() => {
                     setWithdrawError(null);
                     setWithdrawLoading(true);
-                    const body = {};
-                    if (withdrawDestination.trim()) body.destinationAddress = withdrawDestination.trim();
-                    const num = withdrawAmount.trim() ? parseFloat(withdrawAmount) : undefined;
-                    if (num != null && !Number.isNaN(num) && num > 0) body.amountUsd = num;
-                    withdrawEscrowFees(body)
-                      .then(() => { setWithdrawModalOpen(false); loadFeesSummary(); })
+                    const amountUsd = parseFloat(withdrawAmount);
+                    if (Number.isNaN(amountUsd) || amountUsd <= 0) {
+                      setWithdrawError('Enter a valid amount (USD) greater than 0');
+                      setWithdrawLoading(false);
+                      return;
+                    }
+                    withdrawEscrowFees({
+                      amountUsd,
+                      destinationXrplAddress: withdrawDestination.trim(),
+                    })
+                      .then(() => {
+                        setWithdrawModalOpen(false);
+                        loadFeesSummary();
+                        loadStats();
+                      })
                       .catch((e) => setWithdrawError(e.message || 'Withdrawal failed'))
                       .finally(() => setWithdrawLoading(false));
                   }}

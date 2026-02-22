@@ -18,7 +18,7 @@ const getAuthHeaders = () => {
 
 /**
  * Fetch escrow management stats
- * @returns {Promise<{ success: boolean; message: string; data?: { totalAmountUsd, totalAmountUsdChangePercent, totalEscrowCount, totalEscrowCountChangePercent, completedCount, completedCountChangePercent, disputedCount, disputedCountChangePercent } }>}
+ * @returns {Promise<{ success: boolean; message: string; data?: { totalAmountUsd, totalAmountUsdChangePercent, totalEscrowCount, totalEscrowCountChangePercent, completedCount, completedCountChangePercent, disputedCount, disputedCountChangePercent, escrowFeesBalanceXrp } }>}
  */
 export async function fetchEscrowManagementStats() {
   const response = await fetch(`${API_BASE_URL}/admin/escrow-management/stats`, {
@@ -132,16 +132,23 @@ export async function fetchEscrowFeesSummary() {
 }
 
 /**
- * Withdraw escrow fees (admin withdraws collected fees to a destination)
+ * Withdraw escrow fees (admin withdraws collected fees to an XRPL address)
  * Backend: POST /api/admin/escrow-management/fees/withdraw
- * @param {Object} body - { destinationAddress?, amountUsd?, amountXrp? } (optional = withdraw all to default)
- * @returns {Promise<{ success: boolean; message: string; data?: object }>}
+ * @param {Object} body - { amountUsd: number, destinationXrplAddress: string }
+ * @returns {Promise<{ success: boolean; message: string; data?: { withdrawalId, amountUsd, amountXrp, status, xrplTxHash } }>}
  */
-export async function withdrawEscrowFees(body = {}) {
+export async function withdrawEscrowFees(body) {
+  const { amountUsd, destinationXrplAddress } = body || {};
+  if (amountUsd == null || Number(amountUsd) <= 0) throw new Error('Amount (USD) is required and must be greater than 0');
+  if (!destinationXrplAddress || !String(destinationXrplAddress).trim()) throw new Error('XRPL destination address is required');
+
   const response = await fetch(`${API_BASE_URL}/admin/escrow-management/fees/withdraw`, {
     method: 'POST',
     headers: getAuthHeaders(),
-    body: JSON.stringify(body),
+    body: JSON.stringify({
+      amountUsd: Number(amountUsd),
+      destinationXrplAddress: String(destinationXrplAddress).trim(),
+    }),
   });
   const json = await response.json();
   if (!response.ok) throw new Error(json.message || json.error || 'Failed to withdraw fees');
