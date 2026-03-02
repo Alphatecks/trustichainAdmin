@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Layout from '../shared/Layout';
-import { fetchUserManagementStats, fetchUserManagementUsers } from '../../services/userManagementService';
+import { fetchUserManagementStats, fetchPersonalSuites } from '../../services/userManagementService';
 import './UserManagement.css';
 
 const PAGE_SIZE = 10;
 
-const accountTypeFromTab = (tab) => (tab === 'Business suite' ? 'business_suite' : 'personal');
 const kycStatusFromFilter = (filter) => {
   if (filter === 'Verified') return 'verified';
   if (filter === 'Unverified') return 'unverified';
@@ -23,7 +22,6 @@ const formatDate = (iso) => {
 };
 
 const UserManagement = ({ onMenuClick, onUserClick }) => {
-  const [activeTab, setActiveTab] = useState('Personal');
   const [selectedFilter, setSelectedFilter] = useState('Verified Unverified');
   const [stats, setStats] = useState(null);
   const [statsError, setStatsError] = useState(null);
@@ -57,16 +55,14 @@ const UserManagement = ({ onMenuClick, onUserClick }) => {
     setListLoading(true);
     setListError(null);
     try {
-      const res = await fetchUserManagementUsers({
-        accountType: accountTypeFromTab(activeTab),
+      const res = await fetchPersonalSuites({
         page: currentPage,
         pageSize: PAGE_SIZE,
-        kycStatus: kycStatusFromFilter(selectedFilter),
-        searchQuery: searchQuery || undefined,
       });
       if (res?.success && res?.data) {
-        setUsers(res.data.users || []);
-        setTotalPages(res.data.totalPages ?? 0);
+        const d = res.data;
+        setUsers(d.users ?? d.items ?? []);
+        setTotalPages(d.totalPages ?? 0);
       }
     } catch (e) {
       setListError(e.message || 'Failed to load users');
@@ -74,15 +70,11 @@ const UserManagement = ({ onMenuClick, onUserClick }) => {
     } finally {
       setListLoading(false);
     }
-  }, [activeTab, selectedFilter, currentPage, searchQuery]);
+  }, [currentPage]);
 
   useEffect(() => {
     loadUsers();
   }, [loadUsers]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [activeTab, selectedFilter, searchQuery]);
 
   const formatChange = (percent) =>
     percent != null ? `${percent > 0 ? '+' : ''}${percent}% in the past month` : null;
@@ -229,10 +221,6 @@ const UserManagement = ({ onMenuClick, onUserClick }) => {
                 onChange={(e) => setSearchInput(e.target.value)}
               />
             </form>
-            <div className="um-tabs">
-              <button type="button" className={activeTab === 'Personal' ? 'active' : ''} onClick={() => setActiveTab('Personal')}>Personal</button>
-              <button type="button" className={activeTab === 'Business suite' ? 'active' : ''} onClick={() => setActiveTab('Business suite')}>Business suite</button>
-            </div>
             <select className="um-filter-select" value={selectedFilter} onChange={(e) => setSelectedFilter(e.target.value)}>
               <option>Verified Unverified</option>
               <option>Verified</option>

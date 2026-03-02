@@ -111,3 +111,50 @@ export async function fetchUserManagementUsers({ accountType, page = 1, pageSize
 
   return json;
 }
+
+/**
+ * Fetch personal suite users list (personal only).
+ * GET /api/admin/user-management/personal-suites?page=1&pageSize=10
+ * @param {Object} params - { page, pageSize }
+ * @returns {Promise<{ success: boolean; message: string; data?: { totalPages, currentPage?, page?, totalUsers?, total?, users }; error?: string }>}
+ */
+export async function fetchPersonalSuites({ page = 1, pageSize = 10 } = {}) {
+  const searchParams = new URLSearchParams({
+    page: String(page),
+    pageSize: String(pageSize),
+  });
+  const response = await fetch(`${API_BASE_URL}/admin/user-management/personal-suites?${searchParams}`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+
+  const json = await response.json();
+
+  if (!response.ok) {
+    throw new Error(json.message || json.error || 'Failed to load personal suite users');
+  }
+
+  return json;
+}
+
+/**
+ * Fetch KYC detail for a user (business + document URLs).
+ * GET /api/admin/kyc/:userId
+ * @param {string} userId - User UUID (e.g. business owner)
+ * @returns {Promise<{ success: boolean; message: string; data?: { userId, fullName, email, kycStatus, companyLogoUrl, companyName, businessKycStatus, identityVerificationDocumentUrl, addressVerificationDocumentUrl, enhancedDueDiligenceDocumentUrl, businessSubmittedAt, businessReviewedAt } }>}
+ */
+export async function fetchKycDetail(userId) {
+  if (!userId) throw new Error('User ID is required');
+  const response = await fetch(`${API_BASE_URL}/admin/kyc/${encodeURIComponent(userId)}`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+
+  const json = await response.json();
+
+  if (!response.ok) {
+    throw new Error(json.message || json.error || 'Failed to load KYC detail');
+  }
+
+  return json;
+}

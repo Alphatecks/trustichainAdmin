@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../shared/Layout';
-import { fetchBusinessManagementOverview, fetchBusinessManagementActivities, fetchBusinessManagementActivity } from '../../services/businessManagementService';
+import { fetchBusinessManagementOverview, fetchBusinesses, updateBusinessStatus } from '../../services/businessManagementService';
+import { fetchKycDetail } from '../../services/userManagementService';
 import '../dispute/DisputeResolution.css';
 import './BusinessManagement.css';
 
@@ -34,19 +35,16 @@ const formatTableDate = (dateStr) => {
   }
 };
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 const statusForApi = (filter) => {
   if (filter === 'All') return undefined;
-  return filter;
+  if (filter === 'Pending' || filter === 'Verified') return filter;
+  return undefined;
 };
 
 const BusinessManagement = ({ onMenuClick }) => {
-  const [filterAll, setFilterAll] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
   const [searchInput, setSearchInput] = useState('');
-  const [selectedActivityId, setSelectedActivityId] = useState(null);
-  const [activityDetail, setActivityDetail] = useState(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [detailError, setDetailError] = useState(null);
   const [overview, setOverview] = useState(null);
   const [overviewLoading, setOverviewLoading] = useState(true);
   const [overviewError, setOverviewError] = useState(null);
@@ -54,6 +52,12 @@ const BusinessManagement = ({ onMenuClick }) => {
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedBusiness, setSelectedBusiness] = useState(null);
+  const [kycDetail, setKycDetail] = useState(null);
+  const [kycDetailLoading, setKycDetailLoading] = useState(false);
+  const [kycDetailError, setKycDetailError] = useState(null);
+  const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
+  const [statusUpdateError, setStatusUpdateError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -76,183 +80,102 @@ const BusinessManagement = ({ onMenuClick }) => {
     let cancelled = false;
     setListLoading(true);
     setListError(null);
-    fetchBusinessManagementActivities({
+    fetchBusinesses({
       page: listData.page,
       pageSize: listData.pageSize,
-      status: statusForApi(filterAll),
-      search: searchQuery || undefined,
+      status: statusForApi(statusFilter),
     })
       .then((res) => {
         if (!cancelled && res?.success && res?.data) {
+          const d = res.data;
           setListData((prev) => ({
             ...prev,
-            items: res.data.items || [],
-            total: res.data.total ?? 0,
-            totalPages: res.data.totalPages ?? 0,
-            page: res.data.page ?? prev.page,
+            items: d.businesses ?? d.items ?? d.users ?? [],
+            total: d.total ?? d.totalBusinesses ?? d.totalUsers ?? 0,
+            totalPages: d.totalPages ?? 0,
+            page: d.currentPage ?? d.page ?? prev.page,
           }));
         }
       })
       .catch((e) => {
-        if (!cancelled) setListError(e.message || 'Failed to load activities');
+        if (!cancelled) setListError(e.message || 'Failed to load businesses');
       })
       .finally(() => {
         if (!cancelled) setListLoading(false);
       });
     return () => { cancelled = true; };
-  }, [listData.page, listData.pageSize, filterAll, searchQuery]);
+  }, [listData.page, listData.pageSize, statusFilter]);
 
   const setPage = (p) => {
     if (p < 1 || p > listData.totalPages) return;
     setListData((prev) => ({ ...prev, page: p }));
   };
 
-  const getStatusClass = (status) => {
-    const s = (status || '').toLowerCase();
-    if (s === 'in progress' || s === 'active') return 'in-progress';
-    if (s === 'completed' || s === 'resolved') return 'completed';
-    if (s === 'pending') return 'pending';
-    return '';
+  const openDetailModal = (business) => {
+    setSelectedBusiness(business);
+    setStatusUpdateError(null);
+  };
+
+  const closeDetailModal = () => {
+    setSelectedBusiness(null);
+    setKycDetail(null);
+    setKycDetailError(null);
+    setStatusUpdateError(null);
+  };
+
+  useEffect(() => {
+    if (!selectedBusiness?.ownerUserId) {
+      setKycDetail(null);
+      setKycDetailError(null);
+      setKycDetailLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setKycDetailLoading(true);
+    setKycDetailError(null);
+    fetchKycDetail(selectedBusiness.ownerUserId)
+      .then((res) => {
+        if (!cancelled) {
+          console.log('KYC details response:', res);
+          if (res?.success && res?.data) setKycDetail(res.data);
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) setKycDetailError(e.message || 'Failed to load KYC details');
+      })
+      .finally(() => {
+        if (!cancelled) setKycDetailLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [selectedBusiness?.ownerUserId]);
+
+  const handleUpdateStatus = (e) => {
+    e.preventDefault();
+    if (!selectedBusiness?.id) return;
+    const newStatus = e.target.elements?.statusSelect?.value;
+    if (!newStatus) return;
+    setStatusUpdateLoading(true);
+    setStatusUpdateError(null);
+    updateBusinessStatus(selectedBusiness.id, newStatus)
+      .then(() => {
+        setListData((prev) => ({
+          ...prev,
+          items: prev.items.map((b) => (b.id === selectedBusiness.id ? { ...b, status: newStatus } : b)),
+        }));
+        setSelectedBusiness((prev) => (prev ? { ...prev, status: newStatus } : null));
+        setKycDetail((prev) => (prev ? { ...prev, businessKycStatus: newStatus } : null));
+      })
+      .catch((err) => setStatusUpdateError(err.message || 'Failed to update status'))
+      .finally(() => setStatusUpdateLoading(false));
   };
 
   const items = listData.items;
   const { page, totalPages } = listData;
 
-  const activityName = (item) => item?.description?.name ?? item?.name ?? '—';
-  const activityAddress = (item) => item?.description?.address ?? item?.location ?? '—';
-  const activityDate = (item) => item?.date ?? (item?.createdAt ? formatTableDate(item.createdAt) : '—');
-
-  useEffect(() => {
-    if (!selectedActivityId) {
-      setActivityDetail(null);
-      setDetailError(null);
-      return;
-    }
-    let cancelled = false;
-    setDetailLoading(true);
-    setDetailError(null);
-    fetchBusinessManagementActivity(selectedActivityId)
-      .then((res) => {
-        if (!cancelled && res?.success && res?.data) setActivityDetail(res.data);
-      })
-      .catch((e) => {
-        if (!cancelled) setDetailError(e.message || 'Failed to load activity detail');
-      })
-      .finally(() => {
-        if (!cancelled) setDetailLoading(false);
-      });
-    return () => { cancelled = true; };
-  }, [selectedActivityId]);
-
-  const handleBackFromDetail = () => {
-    setSelectedActivityId(null);
-    setActivityDetail(null);
-    setDetailError(null);
-  };
-
-  if (selectedActivityId) {
-    const d = activityDetail;
-    return (
-      <Layout activeMenu="businessManagement" onMenuClick={onMenuClick}>
-        <div className="bm-page">
-          <header className="dr-header">
-            <div className="bm-breadcrumb-wrap">
-              <button type="button" className="bm-back-link" onClick={handleBackFromDetail} aria-label="Back to list">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                <span>Back</span>
-              </button>
-              <span className="bm-breadcrumb-sep">Admin End &gt; Business Management</span>
-            </div>
-          </header>
-          {detailLoading && <div className="bm-detail-loading">Loading activity detail…</div>}
-          {!detailLoading && detailError && <div className="bm-detail-error">{detailError}</div>}
-          {!detailLoading && !detailError && d && (
-            <section className="bm-detail-card">
-              <h2 className="bm-detail-title">Activity detail</h2>
-              <dl className="bm-detail-list">
-                <div className="bm-detail-row">
-                  <dt>Activity</dt>
-                  <dd><span className="dr-id-dot" style={{ marginRight: 8 }} /><span>{d.activityId}</span></dd>
-                </div>
-                <div className="bm-detail-row">
-                  <dt>Activity ID</dt>
-                  <dd>{d.activityId}</dd>
-                </div>
-                <div className="bm-detail-row">
-                  <dt>Description (name)</dt>
-                  <dd>{d.description?.name ?? '—'}</dd>
-                </div>
-                <div className="bm-detail-row">
-                  <dt>Description (address)</dt>
-                  <dd>{d.description?.address ?? '—'}</dd>
-                </div>
-                <div className="bm-detail-row">
-                  <dt>Status</dt>
-                  <dd><span className={`dr-status dr-status--${getStatusClass(d.status)}`}>{d.status}</span></dd>
-                </div>
-                <div className="bm-detail-row">
-                  <dt>Date</dt>
-                  <dd>{d.date ?? (d.createdAt ? formatTableDate(d.createdAt) : '—')}</dd>
-                </div>
-                {d.party1 && (
-                  <>
-                    <div className="bm-detail-row">
-                      <dt>Party 1</dt>
-                      <dd>{d.party1.name ?? '—'}{d.party1.email ? ` (${d.party1.email})` : ''}</dd>
-                    </div>
-                  </>
-                )}
-                {d.party2 && (
-                  <>
-                    <div className="bm-detail-row">
-                      <dt>Party 2</dt>
-                      <dd>{d.party2.name ?? '—'}{d.party2.email ? ` (${d.party2.email})` : ''}</dd>
-                    </div>
-                  </>
-                )}
-                {d.amountUsd != null && (
-                  <div className="bm-detail-row">
-                    <dt>Amount (USD)</dt>
-                    <dd>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(d.amountUsd)}</dd>
-                  </div>
-                )}
-                {d.amountXrp != null && (
-                  <div className="bm-detail-row">
-                    <dt>Amount (XRP)</dt>
-                    <dd>{new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(d.amountXrp)} XRP</dd>
-                  </div>
-                )}
-                {d.transactionType && (
-                  <div className="bm-detail-row">
-                    <dt>Transaction type</dt>
-                    <dd>{d.transactionType}</dd>
-                  </div>
-                )}
-                {d.industry && (
-                  <div className="bm-detail-row">
-                    <dt>Industry</dt>
-                    <dd>{d.industry}</dd>
-                  </div>
-                )}
-                {d.createdAt && (
-                  <div className="bm-detail-row">
-                    <dt>Created</dt>
-                    <dd>{formatTableDate(d.createdAt)}</dd>
-                  </div>
-                )}
-                {d.updatedAt && (
-                  <div className="bm-detail-row">
-                    <dt>Updated</dt>
-                    <dd>{formatTableDate(d.updatedAt)}</dd>
-                  </div>
-                )}
-              </dl>
-            </section>
-          )}
-        </div>
-      </Layout>
-    );
-  }
+  const companyName = (b) => b?.companyName ?? b?.businessName ?? b?.name ?? '—';
+  const ownerEmail = (b) => b?.ownerEmail ?? b?.businessEmail ?? b?.email ?? '—';
+  const ownerName = (b) => b?.ownerFullName ?? b?.ownerName ?? '—';
+  const statusDisplay = (s) => (s ? String(s).charAt(0).toUpperCase() + String(s).slice(1).toLowerCase() : '—');
 
   return (
     <Layout activeMenu="businessManagement" onMenuClick={onMenuClick}>
@@ -335,12 +258,12 @@ const BusinessManagement = ({ onMenuClick }) => {
             </div>
           </section>
 
-          {/* Business Tools: table */}
+          {/* Businesses list */}
           <section className="dr-table-card">
             <div className="dr-table-header">
               <div className="dr-section-title">
                 <span className="dr-section-bar" />
-                <span>Business Tools</span>
+                <span>Businesses</span>
               </div>
               <div className="dr-toolbar">
                 <div className="dr-table-search">
@@ -358,13 +281,12 @@ const BusinessManagement = ({ onMenuClick }) => {
                 </div>
                 <select
                   className="dr-filter-select"
-                  value={filterAll}
-                  onChange={(e) => { setFilterAll(e.target.value); setListData((prev) => ({ ...prev, page: 1 })); }}
+                  value={statusFilter}
+                  onChange={(e) => { setStatusFilter(e.target.value); setListData((prev) => ({ ...prev, page: 1 })); }}
                 >
                   <option value="All">All</option>
-                  <option value="In progress">In progress</option>
-                  <option value="Completed">Completed</option>
                   <option value="Pending">Pending</option>
+                  <option value="Verified">Verified</option>
                 </select>
                 <button type="button" className="dr-filter-btn" aria-label="Filter">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -380,60 +302,50 @@ const BusinessManagement = ({ onMenuClick }) => {
               <table className="dr-table">
                 <thead>
                   <tr>
-                    <th>Activity</th>
-                    <th>Description</th>
-                    <th>Activity ID</th>
+                    <th>Company name</th>
+                    <th>Owner</th>
+                    <th>Email</th>
                     <th>Status</th>
-                    <th>Date</th>
-                    <th></th>
+                    <th>Submitted</th>
+                    <th>Reviewed</th>
+                    <th>Last updated</th>
                   </tr>
                 </thead>
                 <tbody>
                   {listError && (
-                    <tr><td colSpan={6} className="dr-list-error">{listError}</td></tr>
+                    <tr><td colSpan={7} className="dr-list-error">{listError}</td></tr>
                   )}
                   {!listError && listLoading && items.length === 0 && (
-                    <tr><td colSpan={6} className="dr-list-loading">Loading…</td></tr>
+                    <tr><td colSpan={7} className="dr-list-loading">Loading…</td></tr>
                   )}
                   {!listError && !listLoading && items.length === 0 && (
-                    <tr><td colSpan={6} className="dr-list-empty">No activities found</td></tr>
+                    <tr><td colSpan={7} className="dr-list-empty">No businesses found</td></tr>
                   )}
-                  {!listError && items.map((row) => (
+                  {!listError && items.map((business) => (
                     <tr
-                      key={row.id}
+                      key={business.id}
                       className="dr-table-row-clickable"
-                      onClick={() => setSelectedActivityId(row.id ?? row.activityId)}
+                      onClick={() => openDetailModal(business)}
                       role="button"
                       tabIndex={0}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedActivityId(row.id ?? row.activityId); } }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetailModal(business); } }}
                     >
                       <td>
                         <div className="dr-id-cell">
                           <span className="dr-id-dot" />
-                          <span>{row.activityId}</span>
+                          <span>{companyName(business)}</span>
                         </div>
                       </td>
+                      <td>{ownerName(business)}</td>
+                      <td>{ownerEmail(business)}</td>
                       <td>
-                        <div className="dr-description-cell">
-                          <span className="dr-desc-name">{activityName(row)}</span>
-                          <span className="dr-desc-address">{activityAddress(row)}</span>
-                        </div>
+                        <span className={`dr-status dr-status--${(business.status || business.kycStatus || '').toLowerCase()}`}>
+                          {statusDisplay(business.status ?? business.kycStatus)}
+                        </span>
                       </td>
-                      <td className="bm-activity-id">{row.activityId}</td>
-                      <td><span className={`dr-status dr-status--${getStatusClass(row.status)}`}>{row.status}</span></td>
-                      <td className="dr-timestamp-cell">{activityDate(row)}</td>
-                      <td>
-                        <button
-                          type="button"
-                          className="dr-view-btn"
-                          aria-label="View details"
-                          onClick={(e) => { e.stopPropagation(); setSelectedActivityId(row.id ?? row.activityId); }}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                            <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </button>
-                      </td>
+                      <td className="dr-timestamp-cell">{business.submittedAt ? formatTableDate(business.submittedAt) : '—'}</td>
+                      <td className="dr-timestamp-cell">{business.reviewedAt ? formatTableDate(business.reviewedAt) : '—'}</td>
+                      <td className="dr-timestamp-cell">{business.updatedAt ? formatTableDate(business.updatedAt) : '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -486,6 +398,75 @@ const BusinessManagement = ({ onMenuClick }) => {
           </section>
         </div>
       </div>
+
+      {selectedBusiness && (
+        <div className="bm-modal-overlay" onClick={closeDetailModal} role="presentation">
+          <div className="bm-modal bm-modal--kyc" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="bm-modal-title">
+            <div className="bm-modal-header">
+              <h2 id="bm-modal-title" className="bm-modal-title">Business KYC details</h2>
+              <button type="button" className="bm-modal-close" onClick={closeDetailModal} aria-label="Close modal">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M15 5L5 15M5 5l10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+              </button>
+            </div>
+            <div className="bm-modal-body">
+              {kycDetailLoading && <div className="bm-kyc-loading">Loading KYC details…</div>}
+              {!kycDetailLoading && kycDetailError && <div className="bm-kyc-error">{kycDetailError}</div>}
+              {!kycDetailLoading && !kycDetailError && (kycDetail || selectedBusiness) && (
+                <>
+                  {kycDetail?.companyLogoUrl && (
+                    <div className="bm-kyc-logo-wrap">
+                      <img src={kycDetail.companyLogoUrl} alt="" className="bm-kyc-logo" />
+                    </div>
+                  )}
+                  <dl className="bm-detail-list bm-modal-detail-list">
+                    <div className="bm-detail-row"><dt>Company name</dt><dd>{kycDetail?.companyName ?? companyName(selectedBusiness)}</dd></div>
+                    <div className="bm-detail-row"><dt>Full name</dt><dd>{kycDetail?.fullName ?? ownerName(selectedBusiness)}</dd></div>
+                    <div className="bm-detail-row"><dt>Email</dt><dd>{kycDetail?.email ?? ownerEmail(selectedBusiness)}</dd></div>
+                    <div className="bm-detail-row"><dt>KYC status</dt><dd><span className={`dr-status dr-status--${(kycDetail?.kycStatus || '').toLowerCase().replace(/\s/g, '-')}`}>{statusDisplay(kycDetail?.kycStatus)}</span></dd></div>
+                    <div className="bm-detail-row"><dt>Business KYC status</dt><dd><span className={`dr-status dr-status--${(kycDetail?.businessKycStatus || selectedBusiness?.status || '').toLowerCase().replace(/\s/g, '-')}`}>{statusDisplay(kycDetail?.businessKycStatus ?? selectedBusiness?.status)}</span></dd></div>
+                    <div className="bm-detail-row"><dt>Business submitted</dt><dd>{kycDetail?.businessSubmittedAt ? formatTableDate(kycDetail.businessSubmittedAt) : (selectedBusiness?.submittedAt ? formatTableDate(selectedBusiness.submittedAt) : '—')}</dd></div>
+                    <div className="bm-detail-row"><dt>Business reviewed</dt><dd>{kycDetail?.businessReviewedAt ? formatTableDate(kycDetail.businessReviewedAt) : (selectedBusiness?.reviewedAt ? formatTableDate(selectedBusiness.reviewedAt) : '—')}</dd></div>
+                    {(kycDetail?.userId || selectedBusiness?.ownerUserId) && (
+                      <div className="bm-detail-row"><dt>User ID</dt><dd><code className="bm-modal-id">{kycDetail?.userId ?? selectedBusiness.ownerUserId}</code></dd></div>
+                    )}
+                  </dl>
+                  {(kycDetail?.identityVerificationDocumentUrl || kycDetail?.addressVerificationDocumentUrl || kycDetail?.enhancedDueDiligenceDocumentUrl) && (
+                    <div className="bm-kyc-docs">
+                      <h3 className="bm-kyc-docs-title">KYC documents</h3>
+                      <div className="bm-kyc-docs-list">
+                        {kycDetail?.identityVerificationDocumentUrl && (
+                          <a href={kycDetail.identityVerificationDocumentUrl} target="_blank" rel="noopener noreferrer" className="bm-kyc-doc-link">Identity verification</a>
+                        )}
+                        {kycDetail?.addressVerificationDocumentUrl && (
+                          <a href={kycDetail.addressVerificationDocumentUrl} target="_blank" rel="noopener noreferrer" className="bm-kyc-doc-link">Address verification</a>
+                        )}
+                        {kycDetail?.enhancedDueDiligenceDocumentUrl && (
+                          <a href={kycDetail.enhancedDueDiligenceDocumentUrl} target="_blank" rel="noopener noreferrer" className="bm-kyc-doc-link">Enhanced due diligence</a>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            <form className="bm-modal-actions" onSubmit={handleUpdateStatus}>
+              <div className="bm-modal-status-row">
+                <label htmlFor="bm-status-select">Update business status</label>
+                <select key={`status-${selectedBusiness?.id}-${kycDetail?.businessKycStatus ?? selectedBusiness?.status ?? ''}`} id="bm-status-select" name="statusSelect" className="bm-modal-select" defaultValue={kycDetail?.businessKycStatus ?? selectedBusiness?.status ?? 'In review'} disabled={statusUpdateLoading}>
+                  <option value="In review">In review</option>
+                  <option value="Verified">Verified</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </div>
+              {statusUpdateError && <div className="bm-modal-error">{statusUpdateError}</div>}
+              <div className="bm-modal-buttons">
+                <button type="button" className="bm-modal-btn bm-modal-btn--secondary" onClick={closeDetailModal} disabled={statusUpdateLoading}>Close</button>
+                <button type="submit" className="bm-modal-btn bm-modal-btn--primary" disabled={statusUpdateLoading}>{statusUpdateLoading ? 'Updating…' : 'Update status'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };

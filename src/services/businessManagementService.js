@@ -85,3 +85,59 @@ export async function fetchBusinessManagementActivity(idOrActivityId) {
 
   return json;
 }
+
+/**
+ * Fetch list of businesses.
+ * GET /api/admin/businesses?page=1&pageSize=20&status=Pending|Verified
+ * @param {Object} params - { page, pageSize, status? } — status: 'Pending' | 'Verified' (omit for all)
+ * @returns {Promise<{ success: boolean; message: string; data?: { businesses?, items?, total?, totalPages?, page?, currentPage? } }>}
+ */
+export async function fetchBusinesses(params = {}) {
+  const { page = 1, pageSize = 20, status } = params;
+  const searchParams = new URLSearchParams({
+    page: String(page),
+    pageSize: String(pageSize),
+  });
+  if (status && status !== 'All') searchParams.set('status', status);
+
+  const response = await fetch(
+    `${API_BASE_URL}/admin/businesses?${searchParams}`,
+    { method: 'GET', headers: getAuthHeaders() }
+  );
+
+  const json = await response.json();
+
+  if (!response.ok) {
+    throw new Error(json.message || json.error || 'Failed to load businesses');
+  }
+
+  return json;
+}
+
+/**
+ * Update a business's status (KYC/verification status).
+ * PATCH /api/admin/businesses/:businessId/status
+ * @param {string} businessId - Business UUID
+ * @param {string} status - 'Verified' | 'Pending'
+ * @returns {Promise<{ success: boolean; message: string; data?: object }>}
+ */
+export async function updateBusinessStatus(businessId, status) {
+  if (!businessId) throw new Error('Business ID is required');
+  if (!status) throw new Error('Status is required');
+  const response = await fetch(
+    `${API_BASE_URL}/admin/businesses/${encodeURIComponent(String(businessId))}/status`,
+    {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ status }),
+    }
+  );
+
+  const json = await response.json();
+
+  if (!response.ok) {
+    throw new Error(json.message || json.error || 'Failed to update business status');
+  }
+
+  return json;
+}
