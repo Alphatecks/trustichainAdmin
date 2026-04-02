@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../shared/Layout';
 import { fetchDashboardOverview, fetchEscrowInsight, fetchDisputeResolution, fetchLiveFeed, fetchDashboardUsers, fetchKycList, fetchKycDetail, kycApproveOrDecline, fetchAlerts } from '../../services/dashboardService';
+import { useAdminProfile } from '../../utils/adminProfile';
 import './Dashboard.css';
 
 const formatNumber = (n) => {
@@ -14,6 +15,13 @@ const formatVolume = (n) => {
 };
 
 const Dashboard = ({ onLogout, onMenuClick }) => {
+  const {
+    adminName,
+    adminAvatarUrl,
+    adminRole,
+    adminProfileLoading,
+    adminInitials,
+  } = useAdminProfile();
   const [overview, setOverview] = useState(null);
   const [overviewLoading, setOverviewLoading] = useState(true);
   const [overviewError, setOverviewError] = useState(null);
@@ -276,13 +284,17 @@ const Dashboard = ({ onLogout, onMenuClick }) => {
               </svg>
               <span className="dash-notification-dot" />
             </button>
-            <span className="dash-avatar">SC</span>
+            {adminAvatarUrl ? (
+              <img src={adminAvatarUrl} alt={adminName || 'Super Admin'} className="dash-avatar" style={{ objectFit: 'cover' }} />
+            ) : (
+              <span className="dash-avatar">{adminProfileLoading ? '…' : adminInitials}</span>
+            )}
             <div className="dash-profile-info">
               <span className="dash-profile-name-row">
-                <span className="dash-profile-name">Sarah Chen</span>
+                <span className="dash-profile-name">{adminProfileLoading ? '…' : (adminName || 'Super Admin')}</span>
                 <img src={require('../../assets/images/Frame.png')} alt="" className="dash-verified-badge" />
               </span>
-              <span className="dash-profile-role">Freelancer</span>
+              <span className="dash-profile-role">{adminRole || 'Super Admin'}</span>
             </div>
           </div>
         </header>

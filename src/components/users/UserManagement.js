@@ -1,15 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Layout from '../shared/Layout';
 import { fetchUserManagementStats, fetchPersonalSuites } from '../../services/userManagementService';
+import { useAdminProfile } from '../../utils/adminProfile';
 import './UserManagement.css';
 
 const PAGE_SIZE = 10;
-
-const kycStatusFromFilter = (filter) => {
-  if (filter === 'Verified') return 'verified';
-  if (filter === 'Unverified') return 'unverified';
-  return undefined;
-};
 
 const formatDate = (iso) => {
   if (!iso) return '—';
@@ -22,6 +17,13 @@ const formatDate = (iso) => {
 };
 
 const UserManagement = ({ onMenuClick, onUserClick }) => {
+  const {
+    adminName,
+    adminAvatarUrl,
+    adminRole,
+    adminProfileLoading,
+    adminInitials,
+  } = useAdminProfile();
   const [selectedFilter, setSelectedFilter] = useState('Verified Unverified');
   const [stats, setStats] = useState(null);
   const [statsError, setStatsError] = useState(null);
@@ -86,6 +88,26 @@ const UserManagement = ({ onMenuClick, onUserClick }) => {
 
   const kycDisplay = (status) => (status ? String(status).charAt(0).toUpperCase() + String(status).slice(1) : '—');
   const formatVolume = (n) => (n != null ? `$${Number(n).toLocaleString()}` : '—');
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const displayedUsers = users.filter((user) => {
+    const status = String(user?.kycStatus || '').toLowerCase();
+    const passesFilter =
+      selectedFilter === 'Verified Unverified' ||
+      (selectedFilter === 'Verified' && status === 'verified') ||
+      (selectedFilter === 'Unverified' && status === 'unverified');
+    if (!passesFilter) return false;
+    if (!normalizedSearch) return true;
+    const haystack = [
+      user?.name,
+      user?.email,
+      user?.kycStatus,
+      user?.lastActivityAgo,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    return haystack.includes(normalizedSearch);
+  });
 
   return (
     <Layout activeMenu="users" onMenuClick={onMenuClick}>
@@ -108,13 +130,17 @@ const UserManagement = ({ onMenuClick, onUserClick }) => {
               </svg>
               <span className="um-notification-dot" />
             </button>
-            <span className="um-avatar">SC</span>
+            {adminAvatarUrl ? (
+              <img src={adminAvatarUrl} alt={adminName || 'Super Admin'} className="um-avatar" style={{ objectFit: 'cover' }} />
+            ) : (
+              <span className="um-avatar">{adminProfileLoading ? '…' : adminInitials}</span>
+            )}
             <div className="um-profile-info">
               <span className="um-profile-name-row">
-                <span className="um-profile-name">Sarah Chen</span>
+                <span className="um-profile-name">{adminProfileLoading ? '…' : (adminName || 'Super Admin')}</span>
                 <img src={require('../../assets/images/Frame.png')} alt="" className="um-verified-badge" />
               </span>
-              <span className="um-profile-role">Freelancer</span>
+              <span className="um-profile-role">{adminRole || 'Super Admin'}</span>
             </div>
           </div>
         </header>
@@ -253,10 +279,10 @@ const UserManagement = ({ onMenuClick, onUserClick }) => {
               <tbody>
                 {listLoading ? (
                   <tr><td colSpan={7} className="um-table-loading">Loading…</td></tr>
-                ) : users.length === 0 ? (
+                ) : displayedUsers.length === 0 ? (
                   <tr><td colSpan={7} className="um-table-empty">No users found</td></tr>
                 ) : (
-                  users.map((user) => (
+                  displayedUsers.map((user) => (
                     <tr key={user.id} onClick={() => { console.log('User tapped:', user); onUserClick?.(user); }}>
                       <td>
                         <div className="um-user-cell">

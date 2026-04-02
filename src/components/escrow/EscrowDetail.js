@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../shared/Layout';
 import { fetchEscrowDetail, updateEscrowStatus } from '../../services/escrowService';
+import { useAdminProfile } from '../../utils/adminProfile';
 import './EscrowDetail.css';
 
 const formatDate = (iso) => {
@@ -32,6 +33,12 @@ const STATUS_OPTIONS = [
 ];
 
 const EscrowDetail = ({ escrowId, onBack, onMenuClick }) => {
+  const {
+    adminName,
+    adminAvatarUrl,
+    adminProfileLoading,
+    adminInitials,
+  } = useAdminProfile();
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -142,8 +149,12 @@ const EscrowDetail = ({ escrowId, onBack, onMenuClick }) => {
             <input type="text" placeholder="Search" />
           </div>
           <div className="ed-profile">
-            <span className="ed-avatar">SC</span>
-            <span className="ed-profile-role">Admin</span>
+            {adminAvatarUrl ? (
+              <img src={adminAvatarUrl} alt={adminName || 'Super Admin'} className="ed-avatar" style={{ objectFit: 'cover' }} />
+            ) : (
+              <span className="ed-avatar">{adminProfileLoading ? '…' : adminInitials}</span>
+            )}
+            <span className="ed-profile-role">{adminProfileLoading ? '…' : (adminName || 'Super Admin')}</span>
           </div>
         </header>
 

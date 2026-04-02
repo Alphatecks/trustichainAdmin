@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../shared/Layout';
 import { fetchTransactionOverview, fetchTransactions, fetchTransactionDetail } from '../../services/transactionService';
+import { useAdminProfile } from '../../utils/adminProfile';
 import './Transactions.css';
 
 const PAGE_SIZE = 10;
@@ -14,6 +15,13 @@ const statusFromFilter = (filter) => {
 };
 
 const Transactions = ({ onMenuClick }) => {
+  const {
+    adminName,
+    adminAvatarUrl,
+    adminRole,
+    adminProfileLoading,
+    adminInitials,
+  } = useAdminProfile();
   const [activeTab, setActiveTab] = useState('Personal');
   const [filterAll, setFilterAll] = useState('All');
   const [selectedTransaction, setSelectedTransaction] = useState(null);
@@ -152,13 +160,17 @@ const Transactions = ({ onMenuClick }) => {
               </svg>
               <span className="tx-notification-dot" />
             </button>
-            <span className="tx-avatar">SC</span>
+            {adminAvatarUrl ? (
+              <img src={adminAvatarUrl} alt={adminName || 'Super Admin'} className="tx-avatar" style={{ objectFit: 'cover' }} />
+            ) : (
+              <span className="tx-avatar">{adminProfileLoading ? '…' : adminInitials}</span>
+            )}
             <div className="tx-profile-info">
               <span className="tx-profile-name-row">
-                <span className="tx-profile-name">Sarah Chen</span>
+                <span className="tx-profile-name">{adminProfileLoading ? '…' : (adminName || 'Super Admin')}</span>
                 <img src={require('../../assets/images/Frame.png')} alt="" className="tx-verified-badge" />
               </span>
-              <span className="tx-profile-role">Freelancer</span>
+              <span className="tx-profile-role">{adminRole || 'Super Admin'}</span>
             </div>
           </div>
         </header>

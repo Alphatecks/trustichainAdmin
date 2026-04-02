@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../shared/Layout';
 import { fetchBusinessManagementOverview, fetchBusinesses, updateBusinessStatus } from '../../services/businessManagementService';
 import { fetchKycDetail } from '../../services/userManagementService';
+import { useAdminProfile } from '../../utils/adminProfile';
 import '../dispute/DisputeResolution.css';
 import './BusinessManagement.css';
 
@@ -43,6 +44,13 @@ const statusForApi = (filter) => {
 };
 
 const BusinessManagement = ({ onMenuClick }) => {
+  const {
+    adminName,
+    adminAvatarUrl,
+    adminRole,
+    adminProfileLoading,
+    adminInitials,
+  } = useAdminProfile();
   const [statusFilter, setStatusFilter] = useState('All');
   const [searchInput, setSearchInput] = useState('');
   const [overview, setOverview] = useState(null);
@@ -84,6 +92,7 @@ const BusinessManagement = ({ onMenuClick }) => {
       page: listData.page,
       pageSize: listData.pageSize,
       status: statusForApi(statusFilter),
+      search: searchQuery || undefined,
     })
       .then((res) => {
         if (!cancelled && res?.success && res?.data) {
@@ -104,7 +113,7 @@ const BusinessManagement = ({ onMenuClick }) => {
         if (!cancelled) setListLoading(false);
       });
     return () => { cancelled = true; };
-  }, [listData.page, listData.pageSize, statusFilter]);
+  }, [listData.page, listData.pageSize, statusFilter, searchQuery]);
 
   const setPage = (p) => {
     if (p < 1 || p > listData.totalPages) return;
@@ -197,13 +206,17 @@ const BusinessManagement = ({ onMenuClick }) => {
               </svg>
               <span className="dr-notification-dot" />
             </button>
-            <span className="dr-avatar">SC</span>
+            {adminAvatarUrl ? (
+              <img src={adminAvatarUrl} alt={adminName || 'Super Admin'} className="dr-avatar" style={{ objectFit: 'cover' }} />
+            ) : (
+              <span className="dr-avatar">{adminProfileLoading ? '…' : adminInitials}</span>
+            )}
             <div className="dr-profile-info">
               <span className="dr-profile-name-row">
-                <span className="dr-profile-name">Sarah Chen</span>
+                <span className="dr-profile-name">{adminProfileLoading ? '…' : (adminName || 'Super Admin')}</span>
                 <img src={require('../../assets/images/Frame.png')} alt="" className="dr-verified-badge" />
               </span>
-              <span className="dr-profile-role">Freelancer</span>
+              <span className="dr-profile-role">{adminRole || 'Super Admin'}</span>
             </div>
           </div>
         </header>

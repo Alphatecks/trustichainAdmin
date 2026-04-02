@@ -196,7 +196,7 @@ const Settings = ({ onLogout, onMenuClick }) => {
                 <span className="set-profile-name">{profileLoading ? '…' : fullName || '—'}</span>
                 <img src={require('../../assets/images/Frame.png')} alt="" className="set-verified-badge" />
               </span>
-              <span className="set-profile-role">Freelancer</span>
+              <span className="set-profile-role">Super Admin</span>
             </div>
           </div>
         </header>

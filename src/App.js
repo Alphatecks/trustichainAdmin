@@ -11,6 +11,7 @@ import BusinessManagement from './components/businessManagement';
 import CardManagement from './components/cardManagement/CardManagement';
 import Settings from './components/settings';
 import { authService } from './services/authService';
+import trustiChainLogo from './assets/images/logo.png';
 import './App.css';
 
 function App() {
@@ -24,6 +25,25 @@ function App() {
     if (authService.isAuthenticated()) {
       setIsAuthenticated(true);
     }
+  }, []);
+
+  useEffect(() => {
+    document.title = 'Trustichain admin';
+    const iconHref = trustiChainLogo;
+
+    const ensureLink = (rel, href) => {
+      let link = document.querySelector(`link[rel="${rel}"]`);
+      if (!link) {
+        link = document.createElement('link');
+        link.setAttribute('rel', rel);
+        document.head.appendChild(link);
+      }
+      link.setAttribute('href', href);
+    };
+
+    ensureLink('icon', iconHref);
+    ensureLink('shortcut icon', iconHref);
+    ensureLink('apple-touch-icon', iconHref);
   }, []);
 
   const handleLoginSuccess = () => {

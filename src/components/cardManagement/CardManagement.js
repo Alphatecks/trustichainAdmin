@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../shared/Layout';
 import { fetchCardManagementOverview, fetchCards } from '../../services/cardManagementService';
+import { useAdminProfile } from '../../utils/adminProfile';
 import './CardManagement.css';
 
 const PAGE_SIZE = 10;
@@ -44,6 +45,13 @@ const getCardGradient = (brand) => {
 };
 
 const CardManagement = ({ onMenuClick }) => {
+  const {
+    adminName,
+    adminAvatarUrl,
+    adminRole,
+    adminProfileLoading,
+    adminInitials,
+  } = useAdminProfile();
   const [overview, setOverview] = useState(null);
   const [overviewLoading, setOverviewLoading] = useState(true);
   const [overviewError, setOverviewError] = useState(null);
@@ -124,10 +132,14 @@ const CardManagement = ({ onMenuClick }) => {
             />
           </form>
           <div className="cm-profile">
-            <span className="cm-avatar">SC</span>
+            {adminAvatarUrl ? (
+              <img src={adminAvatarUrl} alt={adminName || 'Super Admin'} className="cm-avatar" style={{ objectFit: 'cover' }} />
+            ) : (
+              <span className="cm-avatar">{adminProfileLoading ? '…' : adminInitials}</span>
+            )}
             <div className="cm-profile-info">
-              <span className="cm-profile-name">Sarah Chen</span>
-              <span className="cm-profile-role">Admin</span>
+              <span className="cm-profile-name">{adminProfileLoading ? '…' : (adminName || 'Super Admin')}</span>
+              <span className="cm-profile-role">{adminRole || 'Super Admin'}</span>
             </div>
           </div>
         </header>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Layout from '../shared/Layout';
 import { fetchUserDetail, updateUserKycStatus } from '../../services/userManagementService';
+import { useAdminProfile } from '../../utils/adminProfile';
 import './UserDetail.css';
 
 const formatDoB = (iso) => {
@@ -31,6 +32,13 @@ const walletTypeLabel = (type) => {
 };
 
 const UserDetail = ({ user, onBack, onMenuClick }) => {
+  const {
+    adminName,
+    adminAvatarUrl,
+    adminRole,
+    adminProfileLoading,
+    adminInitials,
+  } = useAdminProfile();
   const [activeTab, setActiveTab] = useState('Personal');
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -207,13 +215,17 @@ const UserDetail = ({ user, onBack, onMenuClick }) => {
               </svg>
               <span className="ud-notification-dot" />
             </button>
-            <span className="ud-avatar">SC</span>
+            {adminAvatarUrl ? (
+              <img src={adminAvatarUrl} alt={adminName || 'Super Admin'} className="ud-avatar" style={{ objectFit: 'cover' }} />
+            ) : (
+              <span className="ud-avatar">{adminProfileLoading ? '…' : adminInitials}</span>
+            )}
             <div className="ud-profile-info">
               <span className="ud-profile-name-row">
-                <span className="ud-profile-name">Sarah Chen</span>
+                <span className="ud-profile-name">{adminProfileLoading ? '…' : (adminName || 'Super Admin')}</span>
                 <img src={require('../../assets/images/Frame.png')} alt="" className="ud-verified-badge" />
               </span>
-              <span className="ud-profile-role">Freelancer</span>
+              <span className="ud-profile-role">{adminRole || 'Super Admin'}</span>
             </div>
           </div>
         </header>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../shared/Layout';
 import DisputeDetail from './DisputeDetail';
 import { fetchDisputeMetrics, fetchDisputeAlerts, fetchDisputes } from '../../services/disputeService';
+import { useAdminProfile } from '../../utils/adminProfile';
 import './DisputeResolution.css';
 
 const PAGE_SIZE = 10;
@@ -28,6 +29,13 @@ const formatTableTimestamp = (dateStr) => {
 };
 
 const DisputeResolution = ({ onMenuClick }) => {
+  const {
+    adminName,
+    adminAvatarUrl,
+    adminRole,
+    adminProfileLoading,
+    adminInitials,
+  } = useAdminProfile();
   const [filterAll, setFilterAll] = useState('All');
   const [selectedDispute, setSelectedDispute] = useState(null);
   const [searchInput, setSearchInput] = useState('');
@@ -171,13 +179,17 @@ const DisputeResolution = ({ onMenuClick }) => {
               </svg>
               <span className="dr-notification-dot" />
             </button>
-            <span className="dr-avatar">SC</span>
+            {adminAvatarUrl ? (
+              <img src={adminAvatarUrl} alt={adminName || 'Super Admin'} className="dr-avatar" style={{ objectFit: 'cover' }} />
+            ) : (
+              <span className="dr-avatar">{adminProfileLoading ? '…' : adminInitials}</span>
+            )}
             <div className="dr-profile-info">
               <span className="dr-profile-name-row">
-                <span className="dr-profile-name">Sarah Chen</span>
+                <span className="dr-profile-name">{adminProfileLoading ? '…' : (adminName || 'Super Admin')}</span>
                 <img src={require('../../assets/images/Frame.png')} alt="" className="dr-verified-badge" />
               </span>
-              <span className="dr-profile-role">Freelancer</span>
+              <span className="dr-profile-role">{adminRole || 'Super Admin'}</span>
             </div>
           </div>
         </header>

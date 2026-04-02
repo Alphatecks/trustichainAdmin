@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../shared/Layout';
 import { fetchEscrowManagementStats, fetchEscrows, fetchEscrowFeesSummary, withdrawEscrowFees } from '../../services/escrowService';
+import { useAdminProfile } from '../../utils/adminProfile';
 import './EscrowManagement.css';
 
 const PAGE_SIZE = 10;
+const ESCROW_CREATION_FEES_STORAGE_KEY = 'adminEscrowCreationFees';
 
 const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
+  const {
+    adminName,
+    adminAvatarUrl,
+    adminRole,
+    adminProfileLoading,
+    adminInitials,
+  } = useAdminProfile();
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState(null);
@@ -22,6 +31,14 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   const [withdrawError, setWithdrawError] = useState(null);
+  const [setFeeModalOpen, setSetFeeModalOpen] = useState(false);
+  const [setFeeForm, setSetFeeForm] = useState({
+    personalFreelancerFee: '',
+    supplierFee: '',
+    payrollFee: '',
+  });
+  const [setFeeError, setSetFeeError] = useState(null);
+  const [setFeeSuccess, setSetFeeSuccess] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -37,6 +54,21 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
       }
     })();
     return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(ESCROW_CREATION_FEES_STORAGE_KEY);
+      if (!saved) return;
+      const parsed = JSON.parse(saved);
+      setSetFeeForm({
+        personalFreelancerFee: parsed?.personalFreelancerFee != null ? String(parsed.personalFreelancerFee) : '',
+        supplierFee: parsed?.supplierFee != null ? String(parsed.supplierFee) : '',
+        payrollFee: parsed?.payrollFee != null ? String(parsed.payrollFee) : '',
+      });
+    } catch {
+      // Ignore invalid local storage payload.
+    }
   }, []);
 
   useEffect(() => {
@@ -165,13 +197,17 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
               </svg>
               <span className="notification-dot" />
             </button>
-            <span className="avatar">SC</span>
+            {adminAvatarUrl ? (
+              <img src={adminAvatarUrl} alt={adminName || 'Super Admin'} className="avatar" style={{ objectFit: 'cover' }} />
+            ) : (
+              <span className="avatar">{adminProfileLoading ? '…' : adminInitials}</span>
+            )}
             <div className="profile-info">
               <span className="profile-name-row">
-                <span className="name">Sarah Chen</span>
+                <span className="name">{adminProfileLoading ? '…' : (adminName || 'Super Admin')}</span>
                 <img src={require('../../assets/images/Frame.png')} alt="" className="verified-badge" />
               </span>
-              <span className="role">Freelancer</span>
+              <span className="role">{adminRole || 'Super Admin'}</span>
             </div>
           </div>
         </header>
@@ -275,6 +311,32 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
               >
                 Withdraw fees
               </button>
+              <button
+                type="button"
+                className="escrow-fees-set-fee-btn"
+                onClick={() => {
+                  setSetFeeError(null);
+                  setSetFeeModalOpen(true);
+                }}
+                disabled={feesLoading}
+              >
+                Set escrow creation fee
+              </button>
+              {setFeeSuccess && <div className="escrow-fees-success">{setFeeSuccess}</div>}
+              <div className="escrow-fees-config">
+                <div className="escrow-fees-config-row">
+                  <span>Personal freelancer</span>
+                  <strong>{setFeeForm.personalFreelancerFee.trim() ? `$${setFeeForm.personalFreelancerFee.trim()}` : '—'}</strong>
+                </div>
+                <div className="escrow-fees-config-row">
+                  <span>Supplier</span>
+                  <strong>{setFeeForm.supplierFee.trim() ? `$${setFeeForm.supplierFee.trim()}` : '—'}</strong>
+                </div>
+                <div className="escrow-fees-config-row">
+                  <span>Payroll</span>
+                  <strong>{setFeeForm.payrollFee.trim() ? `$${setFeeForm.payrollFee.trim()}` : '—'}</strong>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -478,6 +540,89 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
                   }}
                 >
                   {withdrawLoading ? 'Withdrawing…' : 'Withdraw'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Set escrow creation fee modal */}
+      {setFeeModalOpen && (
+        <div className="escrow-withdraw-overlay" role="dialog" aria-modal="true" aria-labelledby="escrow-set-fee-title">
+          <div className="escrow-withdraw-modal">
+            <div className="escrow-withdraw-header">
+              <h2 id="escrow-set-fee-title">Set escrow creation fee</h2>
+              <button type="button" className="escrow-withdraw-close" onClick={() => setSetFeeModalOpen(false)} aria-label="Close">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div className="escrow-withdraw-body">
+              <p className="escrow-withdraw-note">Set the escrow creation fee for each escrow type. Values are in USD.</p>
+              <label className="escrow-withdraw-label">Personal freelancer escrow creation fee (USD)</label>
+              <input
+                type="text"
+                inputMode="decimal"
+                className="escrow-withdraw-input"
+                value={setFeeForm.personalFreelancerFee}
+                onChange={(e) => setSetFeeForm((prev) => ({ ...prev, personalFreelancerFee: e.target.value }))}
+                placeholder="e.g. 10"
+              />
+              <label className="escrow-withdraw-label">Supplier escrow creation fee (USD)</label>
+              <input
+                type="text"
+                inputMode="decimal"
+                className="escrow-withdraw-input"
+                value={setFeeForm.supplierFee}
+                onChange={(e) => setSetFeeForm((prev) => ({ ...prev, supplierFee: e.target.value }))}
+                placeholder="e.g. 12.5"
+              />
+              <label className="escrow-withdraw-label">Payroll escrow creation fee (USD)</label>
+              <input
+                type="text"
+                inputMode="decimal"
+                className="escrow-withdraw-input"
+                value={setFeeForm.payrollFee}
+                onChange={(e) => setSetFeeForm((prev) => ({ ...prev, payrollFee: e.target.value }))}
+                placeholder="e.g. 8"
+              />
+              {setFeeError && <div className="escrow-withdraw-error">{setFeeError}</div>}
+              <div className="escrow-withdraw-actions">
+                <button type="button" className="escrow-withdraw-cancel" onClick={() => setSetFeeModalOpen(false)}>Cancel</button>
+                <button
+                  type="button"
+                  className="escrow-withdraw-submit"
+                  onClick={() => {
+                    setSetFeeError(null);
+                    const personal = Number(setFeeForm.personalFreelancerFee);
+                    const supplier = Number(setFeeForm.supplierFee);
+                    const payroll = Number(setFeeForm.payrollFee);
+                    if (
+                      !setFeeForm.personalFreelancerFee.trim() ||
+                      !setFeeForm.supplierFee.trim() ||
+                      !setFeeForm.payrollFee.trim() ||
+                      Number.isNaN(personal) ||
+                      Number.isNaN(supplier) ||
+                      Number.isNaN(payroll) ||
+                      personal < 0 ||
+                      supplier < 0 ||
+                      payroll < 0
+                    ) {
+                      setSetFeeError('Enter valid fee amounts (USD) for all three escrow types.');
+                      return;
+                    }
+                    const next = {
+                      personalFreelancerFee: personal.toFixed(2),
+                      supplierFee: supplier.toFixed(2),
+                      payrollFee: payroll.toFixed(2),
+                    };
+                    setSetFeeForm(next);
+                    localStorage.setItem(ESCROW_CREATION_FEES_STORAGE_KEY, JSON.stringify(next));
+                    setSetFeeModalOpen(false);
+                    setSetFeeSuccess('Escrow creation fees updated.');
+                  }}
+                >
+                  Save
                 </button>
               </div>
             </div>
