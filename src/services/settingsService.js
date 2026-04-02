@@ -152,3 +152,49 @@ export async function deleteProfilePhoto() {
 
   return json;
 }
+
+/**
+ * Get escrow fee settings
+ * GET /api/admin/settings/escrow-fees
+ * @returns {Promise<{ success: boolean; message: string; data?: { personalFreelancerEscrowCreationFeeUsd, supplierEscrowCreationFeeUsd, payrollEscrowCreationFeeUsd } }>}
+ */
+export async function fetchEscrowFeeSettings() {
+  const response = await fetch(`${API_BASE_URL}/admin/settings/escrow-fees`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+
+  const json = await response.json();
+
+  if (!response.ok) {
+    throw new Error(json.message || json.error || 'Failed to load escrow fee settings');
+  }
+
+  return json;
+}
+
+/**
+ * Update escrow fee settings
+ * PUT /api/admin/settings/escrow-fees
+ * @param {Object} body - { personalFreelancerEscrowCreationFeeUsd, supplierEscrowCreationFeeUsd, payrollEscrowCreationFeeUsd }
+ * @returns {Promise<{ success: boolean; message: string; data?: { personalFreelancerEscrowCreationFeeUsd, supplierEscrowCreationFeeUsd, payrollEscrowCreationFeeUsd } }>}
+ */
+export async function updateEscrowFeeSettings(body) {
+  const response = await fetch(`${API_BASE_URL}/admin/settings/escrow-fees`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      personalFreelancerEscrowCreationFeeUsd: Number(body?.personalFreelancerEscrowCreationFeeUsd),
+      supplierEscrowCreationFeeUsd: Number(body?.supplierEscrowCreationFeeUsd),
+      payrollEscrowCreationFeeUsd: Number(body?.payrollEscrowCreationFeeUsd),
+    }),
+  });
+
+  const json = await response.json();
+
+  if (!response.ok) {
+    throw new Error(json.message || json.error || 'Failed to update escrow fee settings');
+  }
+
+  return json;
+}

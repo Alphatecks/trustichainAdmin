@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../shared/Layout';
 import { fetchEscrowManagementStats, fetchEscrows, fetchEscrowFeesSummary, withdrawEscrowFees } from '../../services/escrowService';
+import { fetchEscrowFeeSettings, updateEscrowFeeSettings } from '../../services/settingsService';
 import { useAdminProfile } from '../../utils/adminProfile';
 import './EscrowManagement.css';
 
 const PAGE_SIZE = 10;
-const ESCROW_CREATION_FEES_STORAGE_KEY = 'adminEscrowCreationFees';
 
 const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
   const {
@@ -39,6 +39,8 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
   });
   const [setFeeError, setSetFeeError] = useState(null);
   const [setFeeSuccess, setSetFeeSuccess] = useState(null);
+  const [setFeeLoading, setSetFeeLoading] = useState(false);
+  const [setFeeSaving, setSetFeeSaving] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,19 +58,28 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
     return () => { cancelled = true; };
   }, []);
 
+  const applyEscrowFeeSettings = (data) => {
+    setSetFeeForm({
+      personalFreelancerFee: data?.personalFreelancerEscrowCreationFeeUsd != null ? String(data.personalFreelancerEscrowCreationFeeUsd) : '',
+      supplierFee: data?.supplierEscrowCreationFeeUsd != null ? String(data.supplierEscrowCreationFeeUsd) : '',
+      payrollFee: data?.payrollEscrowCreationFeeUsd != null ? String(data.payrollEscrowCreationFeeUsd) : '',
+    });
+  };
+
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(ESCROW_CREATION_FEES_STORAGE_KEY);
-      if (!saved) return;
-      const parsed = JSON.parse(saved);
-      setSetFeeForm({
-        personalFreelancerFee: parsed?.personalFreelancerFee != null ? String(parsed.personalFreelancerFee) : '',
-        supplierFee: parsed?.supplierFee != null ? String(parsed.supplierFee) : '',
-        payrollFee: parsed?.payrollFee != null ? String(parsed.payrollFee) : '',
+    let cancelled = false;
+    setSetFeeLoading(true);
+    fetchEscrowFeeSettings()
+      .then((res) => {
+        if (!cancelled && res?.success && res?.data) applyEscrowFeeSettings(res.data);
+      })
+      .catch((e) => {
+        if (!cancelled) setSetFeeError(e.message || 'Failed to load escrow fee settings');
+      })
+      .finally(() => {
+        if (!cancelled) setSetFeeLoading(false);
       });
-    } catch {
-      // Ignore invalid local storage payload.
-    }
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -178,6 +189,13 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
     const s = (status || '').toLowerCase();
     if (s === 'active') return 'Active';
     return (status || '').charAt(0).toUpperCase() + (status || '').slice(1).toLowerCase();
+  };
+
+  const formatFeeDisplay = (value) => {
+    if (!String(value || '').trim()) return '—';
+    const numeric = Number(value);
+    if (Number.isNaN(numeric)) return '—';
+    return `$${numeric.toFixed(2)}`;
   };
 
   const { items, page, totalPages } = listData;
@@ -318,7 +336,7 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
                   setSetFeeError(null);
                   setSetFeeModalOpen(true);
                 }}
-                disabled={feesLoading}
+                disabled={feesLoading || setFeeLoading}
               >
                 Set escrow creation fee
               </button>
@@ -326,15 +344,15 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
               <div className="escrow-fees-config">
                 <div className="escrow-fees-config-row">
                   <span>Personal freelancer</span>
-                  <strong>{setFeeForm.personalFreelancerFee.trim() ? `$${setFeeForm.personalFreelancerFee.trim()}` : '—'}</strong>
+                  <strong>{formatFeeDisplay(setFeeForm.personalFreelancerFee)}</strong>
                 </div>
                 <div className="escrow-fees-config-row">
                   <span>Supplier</span>
-                  <strong>{setFeeForm.supplierFee.trim() ? `$${setFeeForm.supplierFee.trim()}` : '—'}</strong>
+                  <strong>{formatFeeDisplay(setFeeForm.supplierFee)}</strong>
                 </div>
                 <div className="escrow-fees-config-row">
                   <span>Payroll</span>
-                  <strong>{setFeeForm.payrollFee.trim() ? `$${setFeeForm.payrollFee.trim()}` : '—'}</strong>
+                  <strong>{formatFeeDisplay(setFeeForm.payrollFee)}</strong>
                 </div>
               </div>
             </div>
@@ -567,6 +585,7 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
                 value={setFeeForm.personalFreelancerFee}
                 onChange={(e) => setSetFeeForm((prev) => ({ ...prev, personalFreelancerFee: e.target.value }))}
                 placeholder="e.g. 10"
+                disabled={setFeeSaving}
               />
               <label className="escrow-withdraw-label">Supplier escrow creation fee (USD)</label>
               <input
@@ -576,6 +595,7 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
                 value={setFeeForm.supplierFee}
                 onChange={(e) => setSetFeeForm((prev) => ({ ...prev, supplierFee: e.target.value }))}
                 placeholder="e.g. 12.5"
+                disabled={setFeeSaving}
               />
               <label className="escrow-withdraw-label">Payroll escrow creation fee (USD)</label>
               <input
@@ -585,15 +605,18 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
                 value={setFeeForm.payrollFee}
                 onChange={(e) => setSetFeeForm((prev) => ({ ...prev, payrollFee: e.target.value }))}
                 placeholder="e.g. 8"
+                disabled={setFeeSaving}
               />
               {setFeeError && <div className="escrow-withdraw-error">{setFeeError}</div>}
               <div className="escrow-withdraw-actions">
-                <button type="button" className="escrow-withdraw-cancel" onClick={() => setSetFeeModalOpen(false)}>Cancel</button>
+                <button type="button" className="escrow-withdraw-cancel" onClick={() => setSetFeeModalOpen(false)} disabled={setFeeSaving}>Cancel</button>
                 <button
                   type="button"
                   className="escrow-withdraw-submit"
+                  disabled={setFeeSaving}
                   onClick={() => {
                     setSetFeeError(null);
+                    setSetFeeSuccess(null);
                     const personal = Number(setFeeForm.personalFreelancerFee);
                     const supplier = Number(setFeeForm.supplierFee);
                     const payroll = Number(setFeeForm.payrollFee);
@@ -616,13 +639,23 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
                       supplierFee: supplier.toFixed(2),
                       payrollFee: payroll.toFixed(2),
                     };
-                    setSetFeeForm(next);
-                    localStorage.setItem(ESCROW_CREATION_FEES_STORAGE_KEY, JSON.stringify(next));
-                    setSetFeeModalOpen(false);
-                    setSetFeeSuccess('Escrow creation fees updated.');
+                    setSetFeeSaving(true);
+                    updateEscrowFeeSettings({
+                      personalFreelancerEscrowCreationFeeUsd: personal,
+                      supplierEscrowCreationFeeUsd: supplier,
+                      payrollEscrowCreationFeeUsd: payroll,
+                    })
+                      .then((res) => {
+                        if (res?.success && res?.data) applyEscrowFeeSettings(res.data);
+                        else setSetFeeForm(next);
+                        setSetFeeModalOpen(false);
+                        setSetFeeSuccess('Escrow creation fees updated.');
+                      })
+                      .catch((e) => setSetFeeError(e.message || 'Failed to update escrow fee settings'))
+                      .finally(() => setSetFeeSaving(false));
                   }}
                 >
-                  Save
+                  {setFeeSaving ? 'Saving…' : 'Save'}
                 </button>
               </div>
             </div>
