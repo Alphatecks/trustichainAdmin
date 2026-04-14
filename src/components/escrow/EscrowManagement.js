@@ -60,9 +60,9 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
 
   const applyEscrowFeeSettings = (data) => {
     setSetFeeForm({
-      personalFreelancerFee: data?.personalFreelancerEscrowCreationFeeUsd != null ? String(data.personalFreelancerEscrowCreationFeeUsd) : '',
-      supplierFee: data?.supplierEscrowCreationFeeUsd != null ? String(data.supplierEscrowCreationFeeUsd) : '',
-      payrollFee: data?.payrollEscrowCreationFeeUsd != null ? String(data.payrollEscrowCreationFeeUsd) : '',
+      personalFreelancerFee: data?.personalFreelancerEscrowFeePercentage != null ? String(data.personalFreelancerEscrowFeePercentage) : '',
+      supplierFee: data?.supplierEscrowFeePercentage != null ? String(data.supplierEscrowFeePercentage) : '',
+      payrollFee: data?.payrollEscrowFeePercentage != null ? String(data.payrollEscrowFeePercentage) : '',
     });
   };
 
@@ -338,7 +338,7 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
                 }}
                 disabled={feesLoading || setFeeLoading}
               >
-                Set escrow creation fee
+                Set escrow fee percentage
               </button>
               {setFeeSuccess && <div className="escrow-fees-success">{setFeeSuccess}</div>}
               <div className="escrow-fees-config">
@@ -565,46 +565,46 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
         </div>
       )}
 
-      {/* Set escrow creation fee modal */}
+      {/* Set escrow fee percentage modal */}
       {setFeeModalOpen && (
         <div className="escrow-withdraw-overlay" role="dialog" aria-modal="true" aria-labelledby="escrow-set-fee-title">
           <div className="escrow-withdraw-modal">
             <div className="escrow-withdraw-header">
-              <h2 id="escrow-set-fee-title">Set escrow creation fee</h2>
+              <h2 id="escrow-set-fee-title">Set escrow fee percentage</h2>
               <button type="button" className="escrow-withdraw-close" onClick={() => setSetFeeModalOpen(false)} aria-label="Close">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
               </button>
             </div>
             <div className="escrow-withdraw-body">
-              <p className="escrow-withdraw-note">Set the escrow creation fee for each escrow type. Values are in USD.</p>
-              <label className="escrow-withdraw-label">Personal freelancer escrow creation fee (USD)</label>
+              <p className="escrow-withdraw-note">Set the escrow fee percentage for each escrow type. Values are percentages (%).</p>
+              <label className="escrow-withdraw-label">Personal freelancer escrow fee percentage (%)</label>
               <input
                 type="text"
                 inputMode="decimal"
                 className="escrow-withdraw-input"
                 value={setFeeForm.personalFreelancerFee}
                 onChange={(e) => setSetFeeForm((prev) => ({ ...prev, personalFreelancerFee: e.target.value }))}
-                placeholder="e.g. 10"
+                placeholder="e.g. 2.5"
                 disabled={setFeeSaving}
               />
-              <label className="escrow-withdraw-label">Supplier escrow creation fee (USD)</label>
+              <label className="escrow-withdraw-label">Supplier escrow fee percentage (%)</label>
               <input
                 type="text"
                 inputMode="decimal"
                 className="escrow-withdraw-input"
                 value={setFeeForm.supplierFee}
                 onChange={(e) => setSetFeeForm((prev) => ({ ...prev, supplierFee: e.target.value }))}
-                placeholder="e.g. 12.5"
+                placeholder="e.g. 3"
                 disabled={setFeeSaving}
               />
-              <label className="escrow-withdraw-label">Payroll escrow creation fee (USD)</label>
+              <label className="escrow-withdraw-label">Payroll escrow fee percentage (%)</label>
               <input
                 type="text"
                 inputMode="decimal"
                 className="escrow-withdraw-input"
                 value={setFeeForm.payrollFee}
                 onChange={(e) => setSetFeeForm((prev) => ({ ...prev, payrollFee: e.target.value }))}
-                placeholder="e.g. 8"
+                placeholder="e.g. 1.75"
                 disabled={setFeeSaving}
               />
               {setFeeError && <div className="escrow-withdraw-error">{setFeeError}</div>}
@@ -631,7 +631,7 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
                       supplier < 0 ||
                       payroll < 0
                     ) {
-                      setSetFeeError('Enter valid fee amounts (USD) for all three escrow types.');
+                      setSetFeeError('Enter valid fee percentages for all three escrow types.');
                       return;
                     }
                     const next = {
@@ -641,17 +641,17 @@ const EscrowManagement = ({ onMenuClick, onEscrowClick }) => {
                     };
                     setSetFeeSaving(true);
                     updateEscrowFeeSettings({
-                      personalFreelancerEscrowCreationFeeUsd: personal,
-                      supplierEscrowCreationFeeUsd: supplier,
-                      payrollEscrowCreationFeeUsd: payroll,
+                      personalFreelancerEscrowFeePercentage: personal,
+                      supplierEscrowFeePercentage: supplier,
+                      payrollEscrowFeePercentage: payroll,
                     })
                       .then((res) => {
                         if (res?.success && res?.data) applyEscrowFeeSettings(res.data);
                         else setSetFeeForm(next);
                         setSetFeeModalOpen(false);
-                        setSetFeeSuccess('Escrow creation fees updated.');
+                        setSetFeeSuccess('Escrow fee percentages updated.');
                       })
-                      .catch((e) => setSetFeeError(e.message || 'Failed to update escrow fee settings'))
+                      .catch((e) => setSetFeeError(e.message || 'Failed to update escrow fee percentage settings'))
                       .finally(() => setSetFeeSaving(false));
                   }}
                 >

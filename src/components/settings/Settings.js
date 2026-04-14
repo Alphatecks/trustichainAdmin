@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Layout from '../shared/Layout';
 import { sendPushNotification } from '../../services/notificationService';
-import { fetchProfile, updateProfile, updateProfilePhoto, deleteProfilePhoto, fetchNotificationSettings, updateNotificationSettings } from '../../services/settingsService';
+import { fetchProfile, updateProfile, updateProfilePhoto, uploadProfilePhoto, deleteProfilePhoto, fetchNotificationSettings, updateNotificationSettings } from '../../services/settingsService';
 import './Settings.css';
 
 const getInitials = (name) => {
@@ -10,6 +10,8 @@ const getInitials = (name) => {
   if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   return name.slice(0, 2).toUpperCase();
 };
+
+const PHOTO_MAX_SIZE_BYTES = 5 * 1024 * 1024;
 
 const Settings = ({ onLogout, onMenuClick }) => {
   const [fullName, setFullName] = useState('');
@@ -27,6 +29,7 @@ const Settings = ({ onLogout, onMenuClick }) => {
   const [photoUrlInput, setPhotoUrlInput] = useState('');
   const [photoUpdateLoading, setPhotoUpdateLoading] = useState(false);
   const [photoUpdateError, setPhotoUpdateError] = useState(null);
+  const photoFileInputRef = useRef(null);
 
   const [twoFactor, setTwoFactor] = useState(false);
   const [language, setLanguage] = useState('en');
@@ -104,6 +107,45 @@ const Settings = ({ onLogout, onMenuClick }) => {
       setPhotoUpdateError(err.message || 'Failed to update photo');
     } finally {
       setPhotoUpdateLoading(false);
+    }
+  };
+
+  const handlePickLocalPhoto = () => {
+    if (photoUpdateLoading) return;
+    if (photoFileInputRef.current) photoFileInputRef.current.click();
+  };
+
+  const handleLocalPhotoSelected = async (e) => {
+    const inputEl = e.target;
+    const file = inputEl?.files?.[0];
+    if (!file) return;
+
+    setPhotoUpdateError(null);
+
+    if (!file.type || !file.type.startsWith('image/')) {
+      setPhotoUpdateError('Please select a valid image file.');
+      inputEl.value = '';
+      return;
+    }
+
+    if (file.size > PHOTO_MAX_SIZE_BYTES) {
+      setPhotoUpdateError('Image must be 5MB or smaller.');
+      inputEl.value = '';
+      return;
+    }
+
+    try {
+      setPhotoUpdateLoading(true);
+      const res = await uploadProfilePhoto(file);
+      if (res?.success && res?.data) {
+        setAvatarUrl(res.data.avatarUrl ?? '');
+        setPhotoUrlInput('');
+      }
+    } catch (err) {
+      setPhotoUpdateError(err.message || 'Failed to upload local photo');
+    } finally {
+      setPhotoUpdateLoading(false);
+      inputEl.value = '';
     }
   };
 
@@ -241,6 +283,22 @@ const Settings = ({ onLogout, onMenuClick }) => {
                   )}
                   <div className="set-avatar-actions">
                     <input
+                      ref={photoFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="set-photo-file-input"
+                      onChange={handleLocalPhotoSelected}
+                      disabled={photoUpdateLoading}
+                    />
+                    <button
+                      type="button"
+                      className="set-btn set-btn--secondary"
+                      disabled={photoUpdateLoading}
+                      onClick={handlePickLocalPhoto}
+                    >
+                      {photoUpdateLoading ? 'Updating…' : 'Upload local photo'}
+                    </button>
+                    <input
                       type="url"
                       className="set-input set-photo-url-input"
                       placeholder="https://..."
@@ -253,7 +311,7 @@ const Settings = ({ onLogout, onMenuClick }) => {
                       disabled={photoUpdateLoading}
                       onClick={handleUpdatePhoto}
                     >
-                      {photoUpdateLoading ? 'Updating…' : 'Update photo'}
+                      {photoUpdateLoading ? 'Updating…' : 'Update from URL'}
                     </button>
                     <button
                       type="button"

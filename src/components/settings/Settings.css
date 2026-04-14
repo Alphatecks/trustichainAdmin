@@ -322,6 +322,10 @@
   min-width: 180px;
 }
 
+.set-photo-file-input {
+  display: none;
+}
+
 /* Buttons */
 .set-btn {
   padding: 10px 20px;

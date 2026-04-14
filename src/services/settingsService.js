@@ -6,12 +6,17 @@ import { authService } from './authService';
 
 const API_BASE_URL = 'https://trustichain-backend.onrender.com/api';
 
-const getAuthHeaders = () => {
+const getAuthToken = () => {
   let token = authService.getToken();
   if (!token) token = localStorage.getItem('adminToken');
   if (token && token.startsWith('Bearer ')) token = token.slice(7);
+  return token;
+};
+
+const getAuthHeaders = ({ includeJsonContentType = true } = {}) => {
+  const token = getAuthToken();
   return {
-    'Content-Type': 'application/json',
+    ...(includeJsonContentType ? { 'Content-Type': 'application/json' } : {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 };
@@ -88,6 +93,31 @@ export async function updateProfilePhoto(body) {
 }
 
 /**
+ * Upload profile photo from local file
+ * POST /api/admin/settings/profile/photo/upload
+ * @param {File} file
+ * @returns {Promise<{ success: boolean; message: string; data?: { fullName, email, avatarUrl, emailNotificationsEnabled, pushNotificationsEnabled } }>}
+ */
+export async function uploadProfilePhoto(file) {
+  const formData = new FormData();
+  formData.append('photo', file);
+
+  const response = await fetch(`${API_BASE_URL}/admin/settings/profile/photo/upload`, {
+    method: 'POST',
+    headers: getAuthHeaders({ includeJsonContentType: false }),
+    body: formData,
+  });
+
+  const json = await response.json();
+
+  if (!response.ok) {
+    throw new Error(json.message || json.error || 'Failed to upload profile photo');
+  }
+
+  return json;
+}
+
+/**
  * Get notification settings
  * GET /api/admin/settings/notifications
  * @returns {Promise<{ success: boolean; message: string; data?: { emailNotificationsEnabled, pushNotificationsEnabled } }>}
@@ -156,7 +186,7 @@ export async function deleteProfilePhoto() {
 /**
  * Get escrow fee settings
  * GET /api/admin/settings/escrow-fees
- * @returns {Promise<{ success: boolean; message: string; data?: { personalFreelancerEscrowCreationFeeUsd, supplierEscrowCreationFeeUsd, payrollEscrowCreationFeeUsd } }>}
+ * @returns {Promise<{ success: boolean; message: string; data?: { personalFreelancerEscrowFeePercentage, supplierEscrowFeePercentage, payrollEscrowFeePercentage } }>}
  */
 export async function fetchEscrowFeeSettings() {
   const response = await fetch(`${API_BASE_URL}/admin/settings/escrow-fees`, {
@@ -176,17 +206,17 @@ export async function fetchEscrowFeeSettings() {
 /**
  * Update escrow fee settings
  * PUT /api/admin/settings/escrow-fees
- * @param {Object} body - { personalFreelancerEscrowCreationFeeUsd, supplierEscrowCreationFeeUsd, payrollEscrowCreationFeeUsd }
- * @returns {Promise<{ success: boolean; message: string; data?: { personalFreelancerEscrowCreationFeeUsd, supplierEscrowCreationFeeUsd, payrollEscrowCreationFeeUsd } }>}
+ * @param {Object} body - { personalFreelancerEscrowFeePercentage, supplierEscrowFeePercentage, payrollEscrowFeePercentage }
+ * @returns {Promise<{ success: boolean; message: string; data?: { personalFreelancerEscrowFeePercentage, supplierEscrowFeePercentage, payrollEscrowFeePercentage } }>}
  */
 export async function updateEscrowFeeSettings(body) {
   const response = await fetch(`${API_BASE_URL}/admin/settings/escrow-fees`, {
     method: 'PUT',
     headers: getAuthHeaders(),
     body: JSON.stringify({
-      personalFreelancerEscrowCreationFeeUsd: Number(body?.personalFreelancerEscrowCreationFeeUsd),
-      supplierEscrowCreationFeeUsd: Number(body?.supplierEscrowCreationFeeUsd),
-      payrollEscrowCreationFeeUsd: Number(body?.payrollEscrowCreationFeeUsd),
+      personalFreelancerEscrowFeePercentage: Number(body?.personalFreelancerEscrowFeePercentage),
+      supplierEscrowFeePercentage: Number(body?.supplierEscrowFeePercentage),
+      payrollEscrowFeePercentage: Number(body?.payrollEscrowFeePercentage),
     }),
   });
 
